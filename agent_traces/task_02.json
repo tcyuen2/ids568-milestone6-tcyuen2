@@ -1,0 +1,58 @@
+{
+  "task_id": 2,
+  "task": "What is the difference between data drift and concept drift?",
+  "final_answer": "Data drift is a change in the distribution of the input features \u2014 the model's mapping is still correct but the inputs have shifted. Concept drift is a change in the relationship between inputs and outputs \u2014 the same input features now correspond to different labels. Practical difference: data drift can be detected without labels by comparing input distributions, while concept drift requires ground-truth labels and is therefore harder to detect in real time. [doc2_model_monitoring.md]",
+  "total_ms": 1750.0,
+  "n_steps": 2,
+  "steps": [
+    {
+      "step": 1,
+      "thought": "Search the corpus for both terms in one query.",
+      "action": "retrieve",
+      "action_input": {
+        "query": "data drift vs concept drift",
+        "k": 4
+      },
+      "observation": {
+        "query": "data drift vs concept drift",
+        "hits": [
+          {
+            "source": "doc2_model_monitoring.md",
+            "score": 0.8124,
+            "text": "Data drift is a change in the distribution of the input features... Concept drift is a change in the relationship between inputs and outputs..."
+          },
+          {
+            "source": "doc2_model_monitoring.md",
+            "score": 0.6512,
+            "text": "Data drift can often be detected without labels by comparing the distribution of production inputs to training inputs. Concept drift requires ground-truth labels..."
+          },
+          {
+            "source": "doc4_cicd_ml.md",
+            "score": 0.2819,
+            "text": "Models degrade silently. A traditional bug throws an exception..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.2105,
+            "text": "Shadow deployment cannot detect problems caused by serving the new model's predictions..."
+          }
+        ]
+      },
+      "final_answer": null,
+      "latency_ms": 900,
+      "raw_llm_output": "{\"thought\": \"Search the corpus for both terms in one query.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"data drift vs concept drift\", \"k\": 4}}"
+    },
+    {
+      "step": 2,
+      "thought": "The retrieved chunks directly answer the question. No need for another retrieval or summarization.",
+      "action": null,
+      "action_input": null,
+      "observation": null,
+      "final_answer": "Data drift is a change in the distribution of the input features \u2014 the model's mapping is still correct but the inputs have shifted. Concept drift is a change in the relationship between inputs and outputs \u2014 the same input features now correspond to different labels. Practical difference: data drift can be detected without labels by comparing input distributions, while concept drift requires ground-truth labels and is therefore harder to detect in real time. [doc2_model_monitoring.md]",
+      "latency_ms": 850,
+      "raw_llm_output": "{\"thought\": \"The retrieved chunks directly answer the question. No need for another retrieval or summarization.\", \"final_answer\": \"Data drift is a change in the distribution of the input features \\u2014 the model's mapping is still correct but the inputs have shifted. Concept drift is a change in the relationship between inputs and outputs \\u2014 the same input features now correspond to different labels. Practical difference: data drift can be detected without labels by comparing input distributions, while concept drift requires ground-truth labels and is therefore harder to detect in real time. [doc2_model_monitoring.md]\"}"
+    }
+  ],
+  "notes": "",
+  "success": true
+}

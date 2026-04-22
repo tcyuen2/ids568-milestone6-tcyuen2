@@ -1,0 +1,73 @@
+{
+  "task_id": 6,
+  "task": "Write a short briefing (3 sentences) for a new engineer on why CI/CD for ML is harder than regular CI/CD.",
+  "final_answer": "ML CI/CD must test three independent inputs \u2014 code, data, and hyperparameters \u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \u2014 there is no exception, only slightly worse predictions \u2014 so evaluation on slice metrics becomes mandatory. [doc4_cicd_ml.md]",
+  "total_ms": 2725.0,
+  "n_steps": 3,
+  "steps": [
+    {
+      "step": 1,
+      "thought": "Retrieve the CI/CD-for-ML content.",
+      "action": "retrieve",
+      "action_input": {
+        "query": "CI/CD for ML complexity vs traditional software",
+        "k": 4
+      },
+      "observation": {
+        "query": "CI/CD for ML complexity vs traditional software",
+        "hits": [
+          {
+            "source": "doc4_cicd_ml.md",
+            "score": 0.8133,
+            "text": "Traditional CI/CD tests code. If the unit tests pass and integration tests pass, you ship. ML systems have three independent inputs that can change behavior: code, data, and model hyperparameters..."
+          },
+          {
+            "source": "doc4_cicd_ml.md",
+            "score": 0.6912,
+            "text": "Model behavior is non-deterministic in ways that code usually is not. The same training code run on the same data can produce slightly different models due to random initialization, GPU nondeterminism..."
+          },
+          {
+            "source": "doc4_cicd_ml.md",
+            "score": 0.6502,
+            "text": "Models degrade silently. A traditional bug throws an exception or produces obviously wrong output. A degraded model produces subtly worse predictions..."
+          },
+          {
+            "source": "doc2_model_monitoring.md",
+            "score": 0.2905,
+            "text": "Monitoring deployed machine learning models is essential because model quality degrades over time..."
+          }
+        ]
+      },
+      "final_answer": null,
+      "latency_ms": 905,
+      "raw_llm_output": "{\"thought\": \"Retrieve the CI/CD-for-ML content.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"CI/CD for ML complexity vs traditional software\", \"k\": 4}}"
+    },
+    {
+      "step": 2,
+      "thought": "Use the summarize tool to produce a 3-sentence briefing from the retrieved points.",
+      "action": "summarize",
+      "action_input": {
+        "text": "ML CI/CD is harder than software CI/CD because (1) behavior depends on code AND data AND hyperparameters - a pipeline that only tests code misses data regressions; (2) model training is non-deterministic (random init, GPU order, parallelism) so tests must tolerate small variations; (3) models degrade silently - a bug throws an exception, but a degraded model produces subtly worse predictions that only aggregate metrics reveal.",
+        "max_sentences": 3
+      },
+      "observation": {
+        "summary": "ML CI/CD must test three independent inputs \u2014 code, data, and hyperparameters \u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \u2014 there is no exception, only slightly worse predictions \u2014 so evaluation on slice metrics becomes mandatory."
+      },
+      "final_answer": null,
+      "latency_ms": 1080,
+      "raw_llm_output": "{\"thought\": \"Use the summarize tool to produce a 3-sentence briefing from the retrieved points.\", \"action\": \"summarize\", \"action_input\": {\"text\": \"ML CI/CD is harder than software CI/CD because (1) behavior depends on code AND data AND hyperparameters - a pipeline that only tests code misses data regressions; (2) model training is non-deterministic (random init, GPU order, parallelism) so tests must tolerate small variations; (3) models degrade silently - a bug throws an exception, but a degraded model produces subtly worse predictions that only aggregate metrics reveal.\", \"max_sentences\": 3}}"
+    },
+    {
+      "step": 3,
+      "thought": "Return the 3-sentence briefing.",
+      "action": null,
+      "action_input": null,
+      "observation": null,
+      "final_answer": "ML CI/CD must test three independent inputs \u2014 code, data, and hyperparameters \u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \u2014 there is no exception, only slightly worse predictions \u2014 so evaluation on slice metrics becomes mandatory. [doc4_cicd_ml.md]",
+      "latency_ms": 740,
+      "raw_llm_output": "{\"thought\": \"Return the 3-sentence briefing.\", \"final_answer\": \"ML CI/CD must test three independent inputs \\u2014 code, data, and hyperparameters \\u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \\u2014 there is no exception, only slightly worse predictions \\u2014 so evaluation on slice metrics becomes mandatory. [doc4_cicd_ml.md]\"}"
+    }
+  ],
+  "notes": "",
+  "success": true
+}

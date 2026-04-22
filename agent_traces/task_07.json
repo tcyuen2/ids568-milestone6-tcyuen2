@@ -1,0 +1,85 @@
+{
+  "task_id": 7,
+  "task": "Look up shadow deployment in the corpus, then look up canary deployment, then explain when you would use one instead of the other.",
+  "final_answer": "Use *shadow* deployment when you want to validate a new model on real production data with zero user impact \u2014 the model receives copied traffic but its predictions are never returned to users, so feedback-loop risk is zero. Use *canary* when you need to actually measure user-facing impact: the new model serves 1-5% of real traffic while you monitor key metrics, then you gradually ramp up. Shadow cannot catch problems that only appear when predictions are served (e.g. a bad recommendation that changes user behavior), so shadow is best for pre-launch safety validation while canary is what you use to actually ship. They are complementary. [doc5_model_deployment.md]",
+  "total_ms": 2635.0,
+  "n_steps": 3,
+  "steps": [
+    {
+      "step": 1,
+      "thought": "First retrieval: shadow deployment.",
+      "action": "retrieve",
+      "action_input": {
+        "query": "shadow deployment ML model",
+        "k": 3
+      },
+      "observation": {
+        "query": "shadow deployment ML model",
+        "hits": [
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.7821,
+            "text": "In a shadow deployment, the new model receives a copy of production traffic but its predictions are not returned to users. The predictions are logged for offline comparison with the current production model..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.6412,
+            "text": "Shadow deployment cannot detect problems caused by serving the new model's predictions (for example, a feedback loop where user behavior reacts to worse predictions). It is complementary to, not a replacement for, canary."
+          },
+          {
+            "source": "doc3_ab_testing.md",
+            "score": 0.5201,
+            "text": "Shadow deployment runs the new model in parallel with the old one without serving its predictions to users. This is useful for safety validation."
+          }
+        ]
+      },
+      "final_answer": null,
+      "latency_ms": 920,
+      "raw_llm_output": "{\"thought\": \"First retrieval: shadow deployment.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"shadow deployment ML model\", \"k\": 3}}"
+    },
+    {
+      "step": 2,
+      "thought": "Second retrieval: canary deployment.",
+      "action": "retrieve",
+      "action_input": {
+        "query": "canary deployment gradual traffic rollout",
+        "k": 3
+      },
+      "observation": {
+        "query": "canary deployment gradual traffic rollout",
+        "hits": [
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.7912,
+            "text": "In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.6515,
+            "text": "Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.4912,
+            "text": "For low-risk changes (small model updates, non-critical features), rolling deployment is fine..."
+          }
+        ]
+      },
+      "final_answer": null,
+      "latency_ms": 895,
+      "raw_llm_output": "{\"thought\": \"Second retrieval: canary deployment.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"canary deployment gradual traffic rollout\", \"k\": 3}}"
+    },
+    {
+      "step": 3,
+      "thought": "Synthesize the comparison.",
+      "action": null,
+      "action_input": null,
+      "observation": null,
+      "final_answer": "Use *shadow* deployment when you want to validate a new model on real production data with zero user impact \u2014 the model receives copied traffic but its predictions are never returned to users, so feedback-loop risk is zero. Use *canary* when you need to actually measure user-facing impact: the new model serves 1-5% of real traffic while you monitor key metrics, then you gradually ramp up. Shadow cannot catch problems that only appear when predictions are served (e.g. a bad recommendation that changes user behavior), so shadow is best for pre-launch safety validation while canary is what you use to actually ship. They are complementary. [doc5_model_deployment.md]",
+      "latency_ms": 820,
+      "raw_llm_output": "{\"thought\": \"Synthesize the comparison.\", \"final_answer\": \"Use *shadow* deployment when you want to validate a new model on real production data with zero user impact \\u2014 the model receives copied traffic but its predictions are never returned to users, so feedback-loop risk is zero. Use *canary* when you need to actually measure user-facing impact: the new model serves 1-5% of real traffic while you monitor key metrics, then you gradually ramp up. Shadow cannot catch problems that only appear when predictions are served (e.g. a bad recommendation that changes user behavior), so shadow is best for pre-launch safety validation while canary is what you use to actually ship. They are complementary. [doc5_model_deployment.md]\"}"
+    }
+  ],
+  "notes": "",
+  "success": true
+}

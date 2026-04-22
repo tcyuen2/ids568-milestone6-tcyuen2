@@ -1,0 +1,58 @@
+{
+  "task_id": 5,
+  "task": "Is A/B testing for ML mentioned in the corpus? If so, list the main stages.",
+  "final_answer": "Yes, A/B testing for ML is covered in the corpus. The four main stages are: (1) Hypothesis formulation \u2014 define the business metric to improve and the minimum detectable effect; (2) Traffic splitting \u2014 randomly assign users to control vs. treatment with stable per-user randomization; (3) Guardrail metrics \u2014 track secondary metrics that should not regress even if the primary metric improves; (4) Statistical analysis \u2014 compute confidence intervals and p-values, avoiding peeking to prevent inflated false positive rates. [doc3_ab_testing.md]",
+  "total_ms": 1740.0,
+  "n_steps": 2,
+  "steps": [
+    {
+      "step": 1,
+      "thought": "Check the corpus for A/B testing content.",
+      "action": "retrieve",
+      "action_input": {
+        "query": "A/B testing ML stages",
+        "k": 4
+      },
+      "observation": {
+        "query": "A/B testing ML stages",
+        "hits": [
+          {
+            "source": "doc3_ab_testing.md",
+            "score": 0.8401,
+            "text": "A/B testing is the gold standard for evaluating whether a new machine learning model actually improves outcomes in production..."
+          },
+          {
+            "source": "doc3_ab_testing.md",
+            "score": 0.7012,
+            "text": "The first stage is hypothesis formulation. You must define the business metric you want to improve... The second stage is traffic splitting... The third stage is guardrail metrics... The fourth stage is statistical analysis..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.322,
+            "text": "Shadow deployment runs the new model in parallel with the old one..."
+          },
+          {
+            "source": "doc3_ab_testing.md",
+            "score": 0.2912,
+            "text": "Sample ratio mismatch occurs when the actual split differs from the intended split..."
+          }
+        ]
+      },
+      "final_answer": null,
+      "latency_ms": 930,
+      "raw_llm_output": "{\"thought\": \"Check the corpus for A/B testing content.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"A/B testing ML stages\", \"k\": 4}}"
+    },
+    {
+      "step": 2,
+      "thought": "A/B testing is well-covered in doc3. List the four stages from the retrieved content.",
+      "action": null,
+      "action_input": null,
+      "observation": null,
+      "final_answer": "Yes, A/B testing for ML is covered in the corpus. The four main stages are: (1) Hypothesis formulation \u2014 define the business metric to improve and the minimum detectable effect; (2) Traffic splitting \u2014 randomly assign users to control vs. treatment with stable per-user randomization; (3) Guardrail metrics \u2014 track secondary metrics that should not regress even if the primary metric improves; (4) Statistical analysis \u2014 compute confidence intervals and p-values, avoiding peeking to prevent inflated false positive rates. [doc3_ab_testing.md]",
+      "latency_ms": 810,
+      "raw_llm_output": "{\"thought\": \"A/B testing is well-covered in doc3. List the four stages from the retrieved content.\", \"final_answer\": \"Yes, A/B testing for ML is covered in the corpus. The four main stages are: (1) Hypothesis formulation \\u2014 define the business metric to improve and the minimum detectable effect; (2) Traffic splitting \\u2014 randomly assign users to control vs. treatment with stable per-user randomization; (3) Guardrail metrics \\u2014 track secondary metrics that should not regress even if the primary metric improves; (4) Statistical analysis \\u2014 compute confidence intervals and p-values, avoiding peeking to prevent inflated false positive rates. [doc3_ab_testing.md]\"}"
+    }
+  ],
+  "notes": "",
+  "success": true
+}

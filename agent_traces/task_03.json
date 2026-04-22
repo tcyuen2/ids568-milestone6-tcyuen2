@@ -1,0 +1,73 @@
+{
+  "task_id": 3,
+  "task": "Find what the corpus says about canary deployments, then give me a 2-sentence summary.",
+  "final_answer": "Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity. [doc5_model_deployment.md]",
+  "total_ms": 2710.0,
+  "n_steps": 3,
+  "steps": [
+    {
+      "step": 1,
+      "thought": "Retrieve information about canary deployments.",
+      "action": "retrieve",
+      "action_input": {
+        "query": "canary deployment strategy ML",
+        "k": 4
+      },
+      "observation": {
+        "query": "canary deployment strategy ML",
+        "hits": [
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.7933,
+            "text": "In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.6724,
+            "text": "Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring. The tradeoff is slower rollout and more complex traffic routing infrastructure."
+          },
+          {
+            "source": "doc3_ab_testing.md",
+            "score": 0.3014,
+            "text": "Shadow deployment runs the new model in parallel with the old one without serving its predictions..."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.2711,
+            "text": "For low-risk changes (small model updates, non-critical features), rolling deployment is fine..."
+          }
+        ]
+      },
+      "final_answer": null,
+      "latency_ms": 940,
+      "raw_llm_output": "{\"thought\": \"Retrieve information about canary deployments.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"canary deployment strategy ML\", \"k\": 4}}"
+    },
+    {
+      "step": 2,
+      "thought": "I have the retrieved text. Pass the key excerpt to summarize.",
+      "action": "summarize",
+      "action_input": {
+        "text": "In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back. Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring. The tradeoff is slower rollout and more complex traffic routing infrastructure.",
+        "max_sentences": 2
+      },
+      "observation": {
+        "summary": "Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity."
+      },
+      "final_answer": null,
+      "latency_ms": 1050,
+      "raw_llm_output": "{\"thought\": \"I have the retrieved text. Pass the key excerpt to summarize.\", \"action\": \"summarize\", \"action_input\": {\"text\": \"In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back. Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring. The tradeoff is slower rollout and more complex traffic routing infrastructure.\", \"max_sentences\": 2}}"
+    },
+    {
+      "step": 3,
+      "thought": "Return the 2-sentence summary.",
+      "action": null,
+      "action_input": null,
+      "observation": null,
+      "final_answer": "Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity. [doc5_model_deployment.md]",
+      "latency_ms": 720,
+      "raw_llm_output": "{\"thought\": \"Return the 2-sentence summary.\", \"final_answer\": \"Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity. [doc5_model_deployment.md]\"}"
+    }
+  ],
+  "notes": "",
+  "success": true
+}
