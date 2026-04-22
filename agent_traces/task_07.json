@@ -1,85 +1,144 @@
 {
   "task_id": 7,
   "task": "Look up shadow deployment in the corpus, then look up canary deployment, then explain when you would use one instead of the other.",
-  "final_answer": "Use *shadow* deployment when you want to validate a new model on real production data with zero user impact \u2014 the model receives copied traffic but its predictions are never returned to users, so feedback-loop risk is zero. Use *canary* when you need to actually measure user-facing impact: the new model serves 1-5% of real traffic while you monitor key metrics, then you gradually ramp up. Shadow cannot catch problems that only appear when predictions are served (e.g. a bad recommendation that changes user behavior), so shadow is best for pre-launch safety validation while canary is what you use to actually ship. They are complementary. [doc5_model_deployment.md]",
-  "total_ms": 2635.0,
-  "n_steps": 3,
+  "final_answer": "Agent halted: maximum steps reached without final_answer.",
+  "total_ms": 30928.33,
+  "n_steps": 6,
   "steps": [
     {
       "step": 1,
-      "thought": "First retrieval: shadow deployment.",
+      "thought": "First, I will retrieve information about shadow deployment and canary deployment from the MLOps document corpus.",
       "action": "retrieve",
       "action_input": {
-        "query": "shadow deployment ML model",
-        "k": 3
+        "query": "shadow deployment",
+        "k": 4
       },
       "observation": {
-        "query": "shadow deployment ML model",
+        "query": "shadow deployment",
         "hits": [
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.7821,
-            "text": "In a shadow deployment, the new model receives a copy of production traffic but its predictions are not returned to users. The predictions are logged for offline comparison with the current production model..."
+            "score": 0.6114,
+            "text": "ves sensibly on real data without any\nuser impact.Shadow deployment cannot detect problems caused by serving the new model's\npredictions (for example, a feedback loop where user behavior reacts to worse\npredictions). It is complementary to, not a replacement for, canary.\n\n## Rolling Deployment\n\nRolling deployment replaces instances of the old version with the new version\ngradually, one at a time or in batches. Unlike canary, there is no explicit\ntraffic split; instances are replaced until all are running the new version."
           },
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.6412,
-            "text": "Shadow deployment cannot detect problems caused by serving the new model's predictions (for example, a feedback loop where user behavior reacts to worse predictions). It is complementary to, not a replacement for, canary."
+            "score": 0.4253,
+            "text": "ffic routing infrastructure.\n\n## Shadow DeploymentIn a shadow deployment, the new model receives a copy of production traffic\nbut its predictions are not returned to users. The predictions are logged for\noffline comparison with the current production model. This is useful when you\nwant to validate that the new model behaves sensibly on real data without any\nuser impact."
           },
           {
-            "source": "doc3_ab_testing.md",
-            "score": 0.5201,
-            "text": "Shadow deployment runs the new model in parallel with the old one without serving its predictions to users. This is useful for safety validation."
+            "source": "doc5_model_deployment.md",
+            "score": 0.3773,
+            "text": "if something goes wrong.\n\n## Blue-Green DeploymentIn a blue-green deployment, two identical production environments are\nmaintained. The blue environment serves current traffic. The green environment\nreceives the new model version. Once the new version passes smoke tests,\ntraffic is switched entirely from blue to green in a single cutover."
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.3468,
+            "text": "trics degrade at any step, traffic\nis rolled back.Canary deployment is the most common strategy for high-stakes ML systems\nbecause it combines gradual exposure with monitoring. The tradeoff is slower\nrollout and more complex traffic routing infrastructure.\n\n## Shadow Deployment"
           }
         ]
       },
       "final_answer": null,
-      "latency_ms": 920,
-      "raw_llm_output": "{\"thought\": \"First retrieval: shadow deployment.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"shadow deployment ML model\", \"k\": 3}}"
+      "latency_ms": 1446.6664000065066,
+      "raw_llm_output": "{\"thought\": \"First, I will retrieve information about shadow deployment and canary deployment from the MLOps document corpus.\",\n \"action\": \"retrieve\",\n \"action_input\": {\"query\": \"shadow deployment\", \"k\": 4}\n}"
     },
     {
       "step": 2,
-      "thought": "Second retrieval: canary deployment.",
+      "thought": "The retrieved information suggests that shadow deployment is a technique where the new model receives a copy of production traffic but its predictions are not returned to users, instead they are logged for offline comparison with the current production model. This is useful when you want to validate that the new model behaves sensibly on real data without any user impact.",
       "action": "retrieve",
       "action_input": {
-        "query": "canary deployment gradual traffic rollout",
-        "k": 3
+        "query": "canary deployment",
+        "k": 4
       },
       "observation": {
-        "query": "canary deployment gradual traffic rollout",
+        "query": "canary deployment",
         "hits": [
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.7912,
-            "text": "In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored..."
+            "score": 0.6422,
+            "text": "ves sensibly on real data without any\nuser impact.Shadow deployment cannot detect problems caused by serving the new model's\npredictions (for example, a feedback loop where user behavior reacts to worse\npredictions). It is complementary to, not a replacement for, canary.\n\n## Rolling Deployment\n\nRolling deployment replaces instances of the old version with the new version\ngradually, one at a time or in batches. Unlike canary, there is no explicit\ntraffic split; instances are replaced until all are running the new version."
           },
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.6515,
-            "text": "Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring..."
+            "score": 0.6292,
+            "text": "raffic before full exposure.\n\n## Canary DeploymentIn a canary deployment, the new model version is exposed to a small fraction\nof traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics\nlook healthy, traffic to the new version is gradually increased: 10 percent,\n25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic\nis rolled back."
           },
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.4912,
-            "text": "For low-risk changes (small model updates, non-critical features), rolling deployment is fine..."
+            "score": 0.5198,
+            "text": "d entirely from blue to green in a single cutover.The advantage is immediate rollback: if the new version fails, flip traffic\nback to blue. The disadvantage is cost: you pay for double infrastructure\nduring the transition, and you cannot gradually validate the new model on real\ntraffic before full exposure.\n\n## Canary Deployment"
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.4995,
+            "text": "trics degrade at any step, traffic\nis rolled back.Canary deployment is the most common strategy for high-stakes ML systems\nbecause it combines gradual exposure with monitoring. The tradeoff is slower\nrollout and more complex traffic routing infrastructure.\n\n## Shadow Deployment"
           }
         ]
       },
       "final_answer": null,
-      "latency_ms": 895,
-      "raw_llm_output": "{\"thought\": \"Second retrieval: canary deployment.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"canary deployment gradual traffic rollout\", \"k\": 3}}"
+      "latency_ms": 2768.9117999980226,
+      "raw_llm_output": "{\"thought\": \"The retrieved information suggests that shadow deployment is a technique where the new model receives a copy of production traffic but its predictions are not returned to users, instead they are logged for offline comparison with the current production model. This is useful when you want to validate that the new model behaves sensibly on real data without any user impact.\",\n \"action\": \"retrieve\",\n \"action_input\": {\"query\": \"canary deployment\", \"k\": 4}}"
     },
     {
       "step": 3,
-      "thought": "Synthesize the comparison.",
-      "action": null,
-      "action_input": null,
-      "observation": null,
-      "final_answer": "Use *shadow* deployment when you want to validate a new model on real production data with zero user impact \u2014 the model receives copied traffic but its predictions are never returned to users, so feedback-loop risk is zero. Use *canary* when you need to actually measure user-facing impact: the new model serves 1-5% of real traffic while you monitor key metrics, then you gradually ramp up. Shadow cannot catch problems that only appear when predictions are served (e.g. a bad recommendation that changes user behavior), so shadow is best for pre-launch safety validation while canary is what you use to actually ship. They are complementary. [doc5_model_deployment.md]",
-      "latency_ms": 820,
-      "raw_llm_output": "{\"thought\": \"Synthesize the comparison.\", \"final_answer\": \"Use *shadow* deployment when you want to validate a new model on real production data with zero user impact \\u2014 the model receives copied traffic but its predictions are never returned to users, so feedback-loop risk is zero. Use *canary* when you need to actually measure user-facing impact: the new model serves 1-5% of real traffic while you monitor key metrics, then you gradually ramp up. Shadow cannot catch problems that only appear when predictions are served (e.g. a bad recommendation that changes user behavior), so shadow is best for pre-launch safety validation while canary is what you use to actually ship. They are complementary. [doc5_model_deployment.md]\"}"
+      "thought": "The retrieved information suggests that canary deployment is a technique where the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back.",
+      "action": "summarize",
+      "action_input": {
+        "text": "The retrieved information suggests that canary deployment is a technique where the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back.",
+        "max_sentences": 2
+      },
+      "observation": {
+        "summary": "Canary deployment is a method where a new model version is initially exposed to a small percentage (1-5%) of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted."
+      },
+      "final_answer": null,
+      "latency_ms": 5750.130200001877,
+      "raw_llm_output": "{\"thought\": \"The retrieved information suggests that canary deployment is a technique where the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back.\",\n \"action\": \"summarize\",\n \"action_input\": {\"text\": \"The retrieved information suggests that canary deployment is a technique where the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back.\", \"max_sentences\": 2}}"
+    },
+    {
+      "step": 4,
+      "thought": "The summarized information suggests that canary deployment is a technique where a new model version is initially exposed to a small percentage of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted.",
+      "action": "compare",
+      "action_input": {
+        "shadow_deployment_summary": "The retrieved information suggests that shadow deployment is a technique where the new model receives a copy of production traffic but its predictions are not returned to users, instead they are logged for offline comparison with the current production model. This is useful when you want to validate that the new model behaves sensibly on real data without any user impact.",
+        "canary_deployment_summary": "Canary deployment is a method where a new model version is initially exposed to a small percentage (1-5%) of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted."
+      },
+      "observation": {
+        "error": "Unknown tool: compare. Available: ['retrieve', 'summarize']"
+      },
+      "final_answer": null,
+      "latency_ms": 6924.432699990575,
+      "raw_llm_output": "{\"thought\": \"The summarized information suggests that canary deployment is a technique where a new model version is initially exposed to a small percentage of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted.\",\n \"action\": \"compare\",\n \"action_input\": {\"shadow_deployment_summary\": \"The retrieved information suggests that shadow deployment is a technique where the new model receives a copy of production traffic but its predictions are not returned to users, instead they are logged for offline comparison with the current production model. This is useful when you want to validate that the new model behaves sensibly on real data without any user impact.\",\n \"canary_deployment_summary\": \"Canary deployment is a method where a new model version is initially exposed to a small percentage (1-5%) of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted.\"}}"
+    },
+    {
+      "step": 5,
+      "thought": "The 'compare' tool is not available. I will use the 'summarize' tool to summarize both shadow deployment and canary deployment, then explain when one would be used instead of the other.",
+      "action": "summarize",
+      "action_input": {
+        "text": "The retrieved information suggests that shadow deployment is a technique where the new model receives a copy of production traffic but its predictions are not returned to users, instead they are logged for offline comparison with the current production model. This is useful when you want to validate that the new model behaves sensibly on real data without any user impact.\n\nCanary deployment is a method where a new model version is initially exposed to a small percentage (1-5%) of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted."
+      },
+      "observation": {
+        "summary": "Shadow deployment is a technique where a new model receives production traffic without affecting users, logging predictions for offline comparison with the current model to validate its behavior on real data. Canary deployment exposes a new model version to a small percentage of total traffic, monitors key metrics, and gradually increases exposure if metrics remain healthy; otherwise, it reverts back."
+      },
+      "final_answer": null,
+      "latency_ms": 5444.21629999124,
+      "raw_llm_output": "{\"thought\": \"The 'compare' tool is not available. I will use the 'summarize' tool to summarize both shadow deployment and canary deployment, then explain when one would be used instead of the other.\",\n \"action\": \"summarize\",\n \"action_input\": {\"text\": \"The retrieved information suggests that shadow deployment is a technique where the new model receives a copy of production traffic but its predictions are not returned to users, instead they are logged for offline comparison with the current production model. This is useful when you want to validate that the new model behaves sensibly on real data without any user impact.\\n\\nCanary deployment is a method where a new model version is initially exposed to a small percentage (1-5%) of the total traffic. Key metrics are monitored throughout the process. If the metrics remain healthy, traffic is gradually increased in stages (up to 100%), but if metrics degrade at any point, traffic is reverted.\"}}"
+    },
+    {
+      "step": 6,
+      "thought": "The summarized information suggests that shadow deployment is a technique where the new model receives production traffic without affecting users, logging predictions for offline comparison with the current model to validate its behavior on real data. Canary deployment exposes a new model version to a small percentage of total traffic, monitors key metrics, and gradually increases exposure if metrics remain healthy; otherwise, it reverts back.",
+      "action": "compare",
+      "action_input": {
+        "shadow_deployment_summary": "Shadow deployment is a technique where the new model receives production traffic without affecting users, logging predictions for offline comparison with the current model to validate its behavior on real data.",
+        "canary_deployment_summary": "Canary deployment exposes a new model version to a small percentage of total traffic, monitors key metrics, and gradually increases exposure if metrics remain healthy; otherwise, it reverts back."
+      },
+      "observation": {
+        "error": "Unknown tool: compare. Available: ['retrieve', 'summarize']"
+      },
+      "final_answer": null,
+      "latency_ms": 5621.205899995402,
+      "raw_llm_output": "{\"thought\": \"The summarized information suggests that shadow deployment is a technique where the new model receives production traffic without affecting users, logging predictions for offline comparison with the current model to validate its behavior on real data. Canary deployment exposes a new model version to a small percentage of total traffic, monitors key metrics, and gradually increases exposure if metrics remain healthy; otherwise, it reverts back.\",\n \"action\": \"compare\",\n \"action_input\": {\"shadow_deployment_summary\": \"Shadow deployment is a technique where the new model receives production traffic without affecting users, logging predictions for offline comparison with the current model to validate its behavior on real data.\",\n \"canary_deployment_summary\": \"Canary deployment exposes a new model version to a small percentage of total traffic, monitors key metrics, and gradually increases exposure if metrics remain healthy; otherwise, it reverts back.\"}}"
     }
   ],
   "notes": "",
-  "success": true
+  "success": null
 }

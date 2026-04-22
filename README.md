@@ -1,114 +1,114 @@
-# IDS568 Milestone 6 — RAG Pipeline & Multi-Tool Agent
+# IDS568 Milestone 6 — RAG Pipeline and Multi-Tool Agent
 
-A retrieval-augmented generation pipeline plus a ReAct-style agent controller
-that intelligently routes between a retriever and a summarizer. Both use a
-local open-weight 7B instruct LLM served by Ollama.
+This repo has two things: a RAG pipeline (Part 1) that answers questions using a small MLOps document corpus, and an agent controller (Part 2) that picks between retrieval and summarization tools to solve multi-step tasks. Both use a local 7B open-weight LLM through Ollama.
 
 ## Architecture Overview
 
 ```
-+----------------------+           +----------------------+
-|   RAG Pipeline       |           |   Agent Controller   |
-|   (Part 1)           |           |   (Part 2)           |
-|                      |           |                      |
-|  docs -> chunker     |           |   task -> LLM        |
-|       -> embedder    |           |         /    \       |
-|       -> FAISS       |           |   retrieve  summarize|
-|       -> retriever   | <-------- |     tool      tool   |
-|       -> LLM answer  |           |         \    /       |
-+----------------------+           |          LLM         |
-        ^                          |           |          |
-        |                          |        answer        |
-        +--- same index reused ---+                       |
-                                    +----------------------+
+Part 1 (RAG Pipeline)                   Part 2 (Agent Controller)
+
+  7 .md docs in data/                    User task
+        |                                    |
+        v                                    v
+  chunker (512 char, 50 overlap)         LLM (mistral:7b, JSON mode)
+        |                                    |
+        v                               +----+----+
+  embedder (MiniLM, 384-dim)            |         |
+        |                            retrieve  summarize
+        v                           (same FAISS    (calls
+  FAISS index                        index as      the LLM
+        |                              Part 1)      again)
+        v                                    |
+  retriever (top-4)                          v
+        |                               observation
+        v                                    |
+  LLM (mistral:7b) -----> answer             v
+                                        back to LLM
+                                             |
+                                             v
+                                        final answer
 ```
 
-The agent's `retrieve` tool wraps the same FAISS index built by the RAG
-pipeline — zero code duplication across parts. The same Ollama-served model
-(`mistral:7b-instruct`) drives both the RAG generator and the agent.
-
-- **RAG:** `rag_pipeline.py`, evaluated by `evaluate_rag.py`
-- **Agent:** `agent_controller.py`, traces in `agent_traces/`
-- **Diagram:** `rag_pipeline_diagram.md`
-- **Reports:** `rag_evaluation_report.md`, `agent_report.md`
+The agent's retrieve tool uses the same FAISS index the RAG pipeline builds in Part 1 — I just import it from `rag_pipeline.py`. No code duplication between the two parts.
 
 ## Setup
 
-### 1. Clone this repo
+### 1. Install Ollama and pull the model
 
-```bash
-git clone <your-repo-url>
-cd ids568-milestone6-<your_netid>
-```
-
-### 2. Install Ollama and pull the model
-
-Ollama is the open-source LLM serving stack used for this submission. Install
-from https://ollama.com, then:
+Ollama is the LLM server. Download the Windows installer from https://ollama.com/download/windows and run it. Then pull the model:
 
 ```bash
 ollama pull mistral:7b-instruct
-# Verify:
-ollama run mistral:7b-instruct "Reply with the word READY"
 ```
 
-This pulls `mistralai/Mistral-7B-Instruct-v0.3` (size class: 7B) in quantized
-form. It runs on CPU (~4–6 s/response on a modern laptop) or GPU (<1 s/response
-on an RTX 3060 or better). Requires ~4.5 GB disk.
-
-If you prefer a different open-weight model, override with an environment
-variable (e.g. `export RAG_LLM_MODEL=llama3.1:8b-instruct`); the code is
-model-agnostic as long as the Ollama tag exists.
-
-### 3. Create a Python env and install deps
+This downloads about 4.1 GB. Test it works:
 
 ```bash
+ollama run mistral:7b-instruct "say hi"
+```
+
+Type `/bye` to exit.
+
+### 2. Create a Python virtual environment
+
+**Windows (PowerShell):**
+```powershell
 python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-The first import of `sentence-transformers` will download the MiniLM embedder
-(~90 MB). This happens once.
+If PowerShell blocks script execution, run this once and try again:
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
 
-### 4. Verify the install
+**Mac/Linux:**
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 3. Make sure everything imports
 
 ```bash
-python -c "import faiss, sentence_transformers, ollama; print('OK')"
+python -c "import faiss, sentence_transformers, ollama; print('all good')"
 ```
 
 ## Usage
 
-### Run the RAG pipeline on 3 demo questions
+### Part 1 — Run the RAG pipeline on 3 demo questions
 
 ```bash
 python rag_pipeline.py
 ```
 
-First run builds the FAISS index under `.rag_index/`; subsequent runs load it.
+First run builds the FAISS index and saves it in `.rag_index/`. Later runs just load it.
 
-### Evaluate RAG on the 10 handcrafted queries
+### Part 1 — Run the full evaluation (10 queries, computes P@k and R@k)
 
 ```bash
 python evaluate_rag.py
 ```
 
-This writes `rag_eval_results.json` with per-query precision@k, recall@k, and
-three latency measurements (retrieval / generation / end-to-end). The
-`rag_evaluation_report.md` narrative references these numbers.
+Writes `rag_eval_results.json` with all the metrics. My actual results were:
 
-### Run the agent on the 10 evaluation tasks
+- Mean Precision@4: 0.25
+- Mean Recall@4: 0.889 (7 of 9 in-scope queries perfect; 2 multi-hop queries got 0.5)
+- Mean retrieval: 216 ms
+- Mean generation: 2,574 ms
+- Mean end-to-end: 2,790 ms
+
+### Part 2 — Run the agent on 10 tasks
 
 ```bash
 python agent_controller.py
 ```
 
-Writes one trace per task to `agent_traces/task_NN.json`. Each trace contains:
-task prompt, every LLM thought, every tool call with its input and
-observation, latency per step, and the final answer. The `agent_report.md`
-narrative references these traces.
+Writes one trace per task to `agent_traces/task_NN.json`. Each trace shows every tool call the agent made, what it got back, and how it reasoned. My results: 9 of 10 tasks succeeded. Task 7 (shadow vs canary) hit the step limit (details in `agent_report.md`).
 
-### Run a single custom query
+### Run your own question through the RAG pipeline
 
 ```python
 from rag_pipeline import build_or_load_index, answer_query
@@ -118,7 +118,7 @@ print(result.answer)
 print("sources:", [r.chunk.source for r in result.retrieved])
 ```
 
-### Run the agent on a single custom task
+### Run your own task through the agent
 
 ```python
 from rag_pipeline import build_or_load_index
@@ -131,75 +131,55 @@ save_trace(trace)
 print(trace.final_answer)
 ```
 
-## Model Serving Details
+## Model and Serving Details
 
-Required reproducibility information for the final submission:
-
-| Field | Value |
-|-------|-------|
-| Model name | `mistral:7b-instruct` (Ollama tag) |
+| What | Value |
+|------|-------|
+| Model | `mistral:7b-instruct` (Ollama tag) |
 | HuggingFace origin | `mistralai/Mistral-7B-Instruct-v0.3` |
-| Size class | 7B |
-| Serving stack | **Ollama** (local HTTP server) |
-| Inference device | CPU by default; GPU auto-detected by Ollama if present |
-| Quantization | Q4_K_M (Ollama default for 7B) |
-| Hardware used for final eval | [**FILL IN YOUR OWN HARDWARE** — e.g. "MacBook Pro M2, 16GB unified RAM, CPU inference"] |
-| Typical generation latency | ~4 s/response on CPU, ~0.7 s/response on consumer GPU |
+| Size | 7B parameters |
+| Quantization | Q4_K_M (Ollama's default for 7B) |
+| Serving | **Ollama** (local HTTP server on port 11434) |
+| Hardware used | [FILL IN — e.g. "Windows 11 laptop, CPU only, 16 GB RAM"] |
+| Typical generation time | ~2.6 seconds per response |
 
-**Startup command:**
+**How Ollama runs:** on Windows, Ollama installs as a background service that auto-starts. You don't need to manually launch anything after `ollama pull`. If you ever need to start it manually:
 
 ```bash
-ollama serve &                      # starts the Ollama daemon in the background
-ollama pull mistral:7b-instruct     # one-time
-# Python code then connects to http://localhost:11434 via the ollama package
+ollama serve
 ```
 
-If Ollama is already running as a system service (default install behavior on
-macOS / Windows), the `ollama serve &` step is unnecessary.
+Then in another window you can run the Python scripts and they'll connect to `http://localhost:11434` automatically through the `ollama` Python package.
 
 ## Known Limitations
 
-- **Corpus size.** The corpus is 7 short MLOps documents. Retrieval is
-  effectively exhaustive; real-world performance on millions of chunks would
-  require an approximate index (FAISS `IndexIVFFlat` or `IndexHNSW`) and a
-  reranker. Swapping these in is a drop-in change in `RAGIndex.build`.
-- **Single-language corpus.** MiniLM-L6-v2 is English-only. Multilingual
-  corpora should use `paraphrase-multilingual-MiniLM-L12-v2` or similar.
-- **No chunk-level ground truth.** Our relevance labels are document-level
-  (which file should appear in top-k), not chunk-level. This inflates
-  precision@k when two gold chunks come from the same doc.
-- **Agent step cap.** Agent loop caps at 6 steps. Tasks requiring more would
-  hit the ceiling; none of our 10 tasks do, but harder multi-hop tasks might.
-- **Temperature = 0 everywhere.** Deterministic, but may underestimate natural
-  variance in answers. A sensitivity analysis at temperature 0.3 would
-  strengthen the evaluation.
-- **7B model capacity.** The 7B model occasionally over-copies retrieved text
-  into summarize tool inputs and very occasionally conflates distinct concepts
-  in multi-hop synthesis (see `agent_report.md` section 5). A 14B model would
-  likely improve synthesis quality at the cost of ~2x latency.
-- **No ground-truth labels for concept drift.** The monitoring discussion is
-  qualitative; with real labels we could compute per-query answer accuracy in
-  addition to retrieval metrics.
+- **Small corpus.** I only have 7 documents (46 chunks after splitting). On a real-world corpus with millions of chunks I'd need an approximate index like FAISS IVF or HNSW, plus probably a reranker.
+- **English only.** The MiniLM embedder I used is English-only. For other languages I'd need a multilingual embedder.
+- **Multi-hop retrieval is weak.** Queries 8 and 9 in my RAG eval only got 1 of 2 relevant docs. The agent in Part 2 works around this by doing separate retrievals per topic, but the retriever itself has this weakness.
+- **Agent step cap.** The agent gives up after 6 steps. Task 7 in my eval hit this limit. A more patient agent or a stricter "synthesize now" prompt would fix it.
+- **All temperature 0.** Good for reproducibility, but doesn't tell me how stable the system is when the model samples more freely.
+- **7B model has limits.** The 7B model is fast but sometimes struggles with multi-step synthesis. A 14B model would probably do better on hard tasks but take about 2x as long per call.
 
-## Repository Layout
+## Files in this Repo
 
 ```
 ids568-milestone6-<netid>/
 ├── README.md                       # this file
-├── requirements.txt                # pinned dependencies
+├── requirements.txt                # pinned Python dependencies
 ├── rag_pipeline.py                 # Part 1: RAG implementation
-├── evaluate_rag.py                 # Part 1: runs the 10 queries, writes metrics
+├── evaluate_rag.py                 # Part 1: runs the 10 eval queries
 ├── rag_pipeline_diagram.md         # Part 1: architecture diagram
-├── rag_evaluation_report.md        # Part 1: evaluation narrative
+├── rag_evaluation_report.md        # Part 1: evaluation writeup
+├── rag_eval_results.json           # Part 1: raw metrics from my run
 ├── agent_controller.py             # Part 2: ReAct-style agent
-├── agent_report.md                 # Part 2: agent evaluation narrative
+├── agent_report.md                 # Part 2: agent writeup
 ├── agent_traces/
-│   ├── task_01.json                # Part 2: 10 multi-step task traces
+│   ├── task_01.json                # Part 2: 10 task traces
 │   ├── task_02.json
 │   ├── ...
 │   └── task_10.json
-└── data/                           # corpus (7 MLOps topic docs)
-    ├── doc1_feature_stores.md
+└── data/
+    ├── doc1_feature_stores.md      # the 7 corpus docs
     ├── doc2_model_monitoring.md
     ├── doc3_ab_testing.md
     ├── doc4_cicd_ml.md
@@ -208,24 +188,5 @@ ids568-milestone6-<netid>/
     └── doc7_model_registry.md
 ```
 
-## Submission Procedure
 
-```bash
-# 1. Verify everything runs end-to-end on a clean machine
-python rag_pipeline.py
-python evaluate_rag.py
-python agent_controller.py
 
-# 2. Update hardware + latency fields in README.md and rag_evaluation_report.md
-
-# 3. Commit
-git add -A
-git commit -m "Milestone 6 final submission"
-git push
-
-# 4. Tag
-git tag submission
-git push --tags
-```
-
-Then submit the repo URL via the Course Submission Site.

@@ -1,58 +1,72 @@
 {
   "task_id": 5,
   "task": "Is A/B testing for ML mentioned in the corpus? If so, list the main stages.",
-  "final_answer": "Yes, A/B testing for ML is covered in the corpus. The four main stages are: (1) Hypothesis formulation \u2014 define the business metric to improve and the minimum detectable effect; (2) Traffic splitting \u2014 randomly assign users to control vs. treatment with stable per-user randomization; (3) Guardrail metrics \u2014 track secondary metrics that should not regress even if the primary metric improves; (4) Statistical analysis \u2014 compute confidence intervals and p-values, avoiding peeking to prevent inflated false positive rates. [doc3_ab_testing.md]",
-  "total_ms": 1740.0,
-  "n_steps": 2,
+  "final_answer": "{\"thought\": \"A/B testing is a method used to evaluate the effectiveness of new machine learning models in production, as offline metrics can be misleading due to factors like user behavior and business objectives. The process involves two stages: first, defining the business metric to improve and the minimum detectable effect, which determines the sample size; second, randomly assigning users to a control group (current model) or treatment group (new model), ensuring stable randomization per user to avoid bias.\"}",
+  "total_ms": 13790.86,
+  "n_steps": 3,
   "steps": [
     {
       "step": 1,
-      "thought": "Check the corpus for A/B testing content.",
+      "thought": "Checking if the MLOps document corpus mentions A/B testing for Machine Learning and listing the main stages if found.",
       "action": "retrieve",
       "action_input": {
-        "query": "A/B testing ML stages",
+        "query": "A/B testing for ML",
         "k": 4
       },
       "observation": {
-        "query": "A/B testing ML stages",
+        "query": "A/B testing for ML",
         "hits": [
           {
             "source": "doc3_ab_testing.md",
-            "score": 0.8401,
-            "text": "A/B testing is the gold standard for evaluating whether a new machine learning model actually improves outcomes in production..."
+            "score": 0.6335,
+            "text": "# A/B Testing for Machine Learning Models\n\nA/B testing is the gold standard for evaluating whether a new machine learning\nmodel actually improves outcomes in production. Offline metrics like accuracy\nor AUC can be misleading because they do not account for user behavior,\ninteraction effects, or the specific business objective the model is supposed\nto drive.\n\n## Stages of an ML A/B Test"
           },
           {
             "source": "doc3_ab_testing.md",
-            "score": 0.7012,
-            "text": "The first stage is hypothesis formulation. You must define the business metric you want to improve... The second stage is traffic splitting... The third stage is guardrail metrics... The fourth stage is statistical analysis..."
+            "score": 0.617,
+            "text": "is supposed\nto drive.\n\n## Stages of an ML A/B TestThe first stage is hypothesis formulation. You must define the business metric\nyou want to improve (click-through rate, revenue per user, churn reduction) and\nthe minimum detectable effect you care about. This determines sample size.\n\nThe second stage is traffic splitting. Users are randomly assigned to the\ncontrol group (current model) or treatment group (new model). Randomization\nmust be stable per user to avoid exposing the same user to both versions."
           },
           {
-            "source": "doc5_model_deployment.md",
-            "score": 0.322,
-            "text": "Shadow deployment runs the new model in parallel with the old one..."
+            "source": "doc4_cicd_ml.md",
+            "score": 0.2422,
+            "text": "rading gains in one segment for losses in another?Model deployment promotes the candidate to production if it passes evaluation.\nThis can be gated by manual approval or fully automated.\n\n## Testing at Multiple Levels\n\nUnit tests verify individual preprocessing functions and model components.\nIntegration tests verify the full training pipeline runs end-to-end. Behavioral\ntests check that the trained model produces sensible predictions on known\nexamples. Invariance tests verify the model is insensitive to transformations\nthat should not affect predictions."
           },
           {
-            "source": "doc3_ab_testing.md",
-            "score": 0.2912,
-            "text": "Sample ratio mismatch occurs when the actual split differs from the intended split..."
+            "source": "doc2_model_monitoring.md",
+            "score": 0.2411,
+            "text": "ls and is therefore harder to detect in real time.## Detection Techniques\n\nPopulation Stability Index (PSI) is a common metric for detecting drift in\nindividual features. PSI values above 0.1 suggest moderate drift; above 0.25\nsuggest significant drift.\n\nKolmogorov-Smirnov tests compare the cumulative distributions of two samples\nand are useful for continuous features. Chi-square tests work well for\ncategorical features. Maximum Mean Discrepancy is a kernel-based method that\ndetects multivariate distributional differences."
           }
         ]
       },
       "final_answer": null,
-      "latency_ms": 930,
-      "raw_llm_output": "{\"thought\": \"Check the corpus for A/B testing content.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"A/B testing ML stages\", \"k\": 4}}"
+      "latency_ms": 1641.9972000003327,
+      "raw_llm_output": "{\"thought\": \"Checking if the MLOps document corpus mentions A/B testing for Machine Learning and listing the main stages if found.\",\n \"action\": \"retrieve\",\n \"action_input\": {\"query\": \"A/B testing for ML\", \"k\": 4}}"
     },
     {
       "step": 2,
-      "thought": "A/B testing is well-covered in doc3. List the four stages from the retrieved content.",
+      "thought": "The corpus mentions A/B testing for Machine Learning and lists the main stages as follows:",
+      "action": "summarize",
+      "action_input": {
+        "text": "# A/B Testing for Machine Learning Models\n\nA/B testing is the gold standard for evaluating whether a new machine learning\nmodel actually improves outcomes in production. Offline metrics like accuracy\nor AUC can be misleading because they do not account for user behavior,\ninteraction effects, or the specific business objective the model is supposed\nto drive.\n\n## Stages of an ML A/B Test\nThe first stage is hypothesis formulation. You must define the business metric\nyou want to improve (click-through rate, revenue per user, churn reduction) and\nthe minimum detectable effect you care about. This determines sample size.\n\nThe second stage is traffic splitting. Users are randomly assigned to the\ncontrol group (current model) or treatment group (new model). Randomization\nmust be stable per user to avoid exposing the same user to both versions."
+      },
+      "observation": {
+        "summary": "A/B testing is a method used to evaluate the effectiveness of new machine learning models in production, as offline metrics can be misleading due to factors like user behavior and business objectives. The process involves two stages: first, defining the business metric to improve and the minimum detectable effect, which determines the sample size; second, randomly assigning users to a control group (current model) or treatment group (new model), ensuring stable randomization per user to avoid bias."
+      },
+      "final_answer": null,
+      "latency_ms": 6125.747699989006,
+      "raw_llm_output": "{\"thought\": \"The corpus mentions A/B testing for Machine Learning and lists the main stages as follows:\",\n \"action\": \"summarize\",\n \"action_input\": {\"text\": \"# A/B Testing for Machine Learning Models\\n\\nA/B testing is the gold standard for evaluating whether a new machine learning\\nmodel actually improves outcomes in production. Offline metrics like accuracy\\nor AUC can be misleading because they do not account for user behavior,\\ninteraction effects, or the specific business objective the model is supposed\\nto drive.\\n\\n## Stages of an ML A/B Test\\nThe first stage is hypothesis formulation. You must define the business metric\\nyou want to improve (click-through rate, revenue per user, churn reduction) and\\nthe minimum detectable effect you care about. This determines sample size.\\n\\nThe second stage is traffic splitting. Users are randomly assigned to the\\ncontrol group (current model) or treatment group (new model). Randomization\\nmust be stable per user to avoid exposing the same user to both versions.\"}}"
+    },
+    {
+      "step": 3,
+      "thought": "The corpus provides information about A/B testing for Machine Learning. The main stages are hypothesis formulation and traffic splitting.",
       "action": null,
       "action_input": null,
       "observation": null,
-      "final_answer": "Yes, A/B testing for ML is covered in the corpus. The four main stages are: (1) Hypothesis formulation \u2014 define the business metric to improve and the minimum detectable effect; (2) Traffic splitting \u2014 randomly assign users to control vs. treatment with stable per-user randomization; (3) Guardrail metrics \u2014 track secondary metrics that should not regress even if the primary metric improves; (4) Statistical analysis \u2014 compute confidence intervals and p-values, avoiding peeking to prevent inflated false positive rates. [doc3_ab_testing.md]",
-      "latency_ms": 810,
-      "raw_llm_output": "{\"thought\": \"A/B testing is well-covered in doc3. List the four stages from the retrieved content.\", \"final_answer\": \"Yes, A/B testing for ML is covered in the corpus. The four main stages are: (1) Hypothesis formulation \\u2014 define the business metric to improve and the minimum detectable effect; (2) Traffic splitting \\u2014 randomly assign users to control vs. treatment with stable per-user randomization; (3) Guardrail metrics \\u2014 track secondary metrics that should not regress even if the primary metric improves; (4) Statistical analysis \\u2014 compute confidence intervals and p-values, avoiding peeking to prevent inflated false positive rates. [doc3_ab_testing.md]\"}"
+      "final_answer": "{\"thought\": \"A/B testing is a method used to evaluate the effectiveness of new machine learning models in production, as offline metrics can be misleading due to factors like user behavior and business objectives. The process involves two stages: first, defining the business metric to improve and the minimum detectable effect, which determines the sample size; second, randomly assigning users to a control group (current model) or treatment group (new model), ensuring stable randomization per user to avoid bias.\"}",
+      "latency_ms": 4046.4936000062153,
+      "raw_llm_output": "{\"thought\": \"The corpus provides information about A/B testing for Machine Learning. The main stages are hypothesis formulation and traffic splitting.\",\n \"action\": \"final_answer\",\n \"final_answer\": {\"thought\": \"A/B testing is a method used to evaluate the effectiveness of new machine learning models in production, as offline metrics can be misleading due to factors like user behavior and business objectives. The process involves two stages: first, defining the business metric to improve and the minimum detectable effect, which determines the sample size; second, randomly assigning users to a control group (current model) or treatment group (new model), ensuring stable randomization per user to avoid bias.\"}}"
     }
   ],
   "notes": "",
-  "success": true
+  "success": null
 }

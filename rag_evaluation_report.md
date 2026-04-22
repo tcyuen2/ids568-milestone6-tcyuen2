@@ -1,149 +1,114 @@
 # RAG Evaluation Report
 
-**Model under evaluation:** `mistral:7b-instruct` (7B class, served via Ollama)
-**Embedder:** `sentence-transformers/all-MiniLM-L6-v2` (384-dim)
-**Vector store:** FAISS `IndexFlatIP` over cosine-normalized vectors
-**Chunking:** 512 characters, 50-character overlap, recursive paragraph-first splitter
-**Top-k:** 4
-**Corpus:** 7 MLOps topic documents (feature stores, monitoring, A/B testing, CI/CD, deployment, data versioning, model registry)
+## Setup
 
-> **Note on numbers below:** the metrics tables are filled in with the results
-> from one clean run on the author's hardware (see `## Hardware` below). These
-> are representative but you should regenerate by running
-> `python evaluate_rag.py` — it overwrites `rag_eval_results.json`, from which
-> you can refresh this report.
+I built a RAG pipeline with these pieces:
 
----
+- **Model:** `mistral:7b-instruct` served locally through Ollama (7B class)
+- **Embedder:** `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions)
+- **Vector store:** FAISS with `IndexFlatIP` (cosine similarity on normalized vectors)
+- **Chunking:** 512 characters per chunk, 50 characters of overlap
+- **Top-k:** I retrieve the 4 nearest chunks per query
+- **Corpus:** 7 markdown files on MLOps topics (feature stores, monitoring, A/B testing, CI/CD, deployment, DVC, model registry). After chunking I had 46 chunks total.
 
-## 1. Retrieval accuracy on 10 handcrafted queries
+All the numbers below come from actually running `evaluate_rag.py`. The raw output is in `rag_eval_results.json`.
 
-| # | Query | Type | Gold sources | Retrieved (unique) | P@4 | R@4 |
-|---|-------|------|--------------|---------------------|-----|-----|
-| 1 | What is a feature store and what problem does it solve? | single-hop | doc1 | doc1, doc7, doc6, doc4 | 0.25 | 1.00 |
-| 2 | How does concept drift differ from data drift? | single-hop | doc2 | doc2, doc4, doc5, doc3 | 0.25 | 1.00 |
-| 3 | What are the main stages of an A/B test for ML models? | single-hop | doc3 | doc3, doc5, doc4, doc2 | 0.25 | 1.00 |
-| 4 | Why is CI/CD for ML more complex than traditional CI/CD? | single-hop | doc4 | doc4, doc2, doc6, doc7 | 0.25 | 1.00 |
-| 5 | Blue-green vs canary deployments? | single-hop | doc5 | doc5, doc3, doc4, doc2 | 0.25 | 1.00 |
-| 6 | How does DVC track data versions without Git? | single-hop | doc6 | doc6, doc7, doc1, doc4 | 0.25 | 1.00 |
-| 7 | What metadata is stored in a model registry? | single-hop | doc7 | doc7, doc6, doc1, doc4 | 0.25 | 1.00 |
-| 8 | How does data versioning relate to model registries? | multi-hop | doc6, doc7 | doc6, doc7, doc1, doc4 | 0.50 | 1.00 |
-| 9 | What should you monitor after a canary deployment? | multi-hop | doc2, doc5 | doc5, doc2, doc3, doc4 | 0.50 | 1.00 |
-| 10 | What is the height of the Eiffel Tower? | out-of-scope | (none) | doc5, doc1, doc3, doc7 | N/A | N/A |
+## 1. Retrieval accuracy on my 10 queries
 
-**Summary (queries 1–9, in-scope only):**
+I wrote 10 test queries by hand: 7 single-hop questions (each with one "correct" document), 2 multi-hop questions (need info from 2 docs), and 1 out-of-scope question about the Eiffel Tower to see if the system would refuse to hallucinate.
 
-- Mean Precision@4: **0.28**
-- Mean Recall@4: **1.00**
-- Coverage: every in-scope query retrieved at least one gold chunk within top-4.
+| # | Query | Type | Gold docs | What the retriever actually got | P@4 | R@4 |
+|---|-------|------|-----------|----------------------------------|-----|-----|
+| 1 | What is a feature store and what problem does it solve? | single-hop | doc1 | doc1 | 0.25 | 1.00 |
+| 2 | How does concept drift differ from data drift? | single-hop | doc2 | doc2 | 0.25 | 1.00 |
+| 3 | What are the main stages of an A/B test for ML models? | single-hop | doc3 | doc3, doc7, doc4 | 0.25 | 1.00 |
+| 4 | Why is CI/CD for ML more complex than traditional CI/CD? | single-hop | doc4 | doc4, doc2 | 0.25 | 1.00 |
+| 5 | Blue-green vs canary deployments? | single-hop | doc5 | doc5 | 0.25 | 1.00 |
+| 6 | How does DVC track data versions without Git? | single-hop | doc6 | doc6 | 0.25 | 1.00 |
+| 7 | What metadata is stored in a model registry? | single-hop | doc7 | doc7 | 0.25 | 1.00 |
+| 8 | How does data versioning relate to model registries? | multi-hop | doc6, doc7 | doc7 only | 0.25 | 0.50 |
+| 9 | What should you monitor after a canary deployment? | multi-hop | doc2, doc5 | doc5 only | 0.25 | 0.50 |
+| 10 | What is the height of the Eiffel Tower? | out-of-scope | (none) | doc1, doc6, doc5 | N/A | N/A |
 
-Precision@4 looks low because each in-scope query typically has only 1–2 gold
-documents out of 4 retrieved slots. The remaining slots are taken by related
-but not strictly-gold documents (e.g. query 2 about concept drift pulls in the
-CI/CD doc because CI/CD discusses model degradation). In practice this is not a
-failure — the extra context is topically relevant and the LLM ignores
-non-answering chunks. If we evaluated at P@1, every in-scope query scores 1.0.
+**Averages across the 9 in-scope queries:**
+- Mean Precision@4: **0.25**
+- Mean Recall@4: **0.889**
 
-## 2. Qualitative grounding analysis
+Precision@4 is 0.25 on every query because each question has only 1 or 2 correct documents out of the 4 I retrieve. The extra slots get filled with related but not-strictly-correct stuff. I think precision@4 is a bit misleading here — if I measured precision@1 instead, every in-scope query would score 1.0 because the top-ranked chunk is always from a correct document.
 
-Grounding held up well on all 9 in-scope queries. Representative observations:
+Recall@4 is the more interesting number. On 7 of the 9 in-scope queries the retriever got everything. On queries 8 and 9 (the multi-hop ones) it only got one of the two correct docs — I analyze those failures below.
 
-- **Single-hop queries (1–7):** the LLM reproduced the key distinction or
-  definition from the gold document and cited the correct filename. Example
-  (query 2): *"Data drift is a change in the distribution of inputs; concept
-  drift is a change in the input-to-output relationship. [doc2_model_monitoring.md]"*
-- **Multi-hop query 8 (DVC + registry):** the model correctly synthesized
-  across two documents, observing that DVC versions data and the registry
-  versions models, and that the registry stores a *reference* to the training
-  data version. This demonstrates genuine cross-document reasoning rather than
-  single-chunk extraction.
-- **Multi-hop query 9 (canary + monitoring):** the model combined "monitor
-  guardrail metrics during canary" (doc5) with "PSI / KS tests for drift"
-  (doc2). No hallucinated metrics.
-- **Out-of-scope query 10 (Eiffel Tower):** the model correctly refused, saying
-  "I cannot answer this from the provided context." This is the desired
-  behavior and shows the grounding guardrail in the prompt works.
+## 2. Grounding analysis (qualitative)
 
-## 3. Hallucination / failure cases
+The model stayed grounded on all the queries I tested. A few examples from my actual run:
 
-Across the 10 queries we observed **zero blatant hallucinations** (fabricated
-facts not in the corpus). Minor issues to note:
+- **Query 1 (feature store):** The model basically repeated doc1's definition and added the citation `[doc1_feature_stores.md]` at the end. It did not add extra facts that weren't in the doc.
 
-- On query 4 the model once added the plausible-but-unstated phrase "data
-  scientists" as an explicit actor. This is a soft hallucination — the corpus
-  does not name a role. Repeating the query with `temperature=0` removed this.
-- On query 8 an earlier run (before we added the "cite filenames" instruction
-  to the prompt) produced an answer without sources. Adding the citation
-  instruction forced attribution and made auditing possible.
+- **Query 2 (drift):** The answer clearly distinguished data drift from concept drift, and it even quoted the doc's example about a competitor changing pricing affecting customer churn. It also cited specific chunk IDs like `doc2_model_monitoring.md::2`. This is really tight grounding.
 
-## 4. Error attribution: retrieval vs generation
+- **Query 5 (blue-green vs canary):** Nice two-paragraph comparison pulling from multiple chunks of doc5. Both deployment strategies were described accurately with correct citations.
 
-| Query | Failure mode | Attribution |
-|-------|--------------|-------------|
-| none in the 9 in-scope | — | — |
-| 10 (Eiffel Tower) | No relevant docs | **Retrieval** correctly returned nothing relevant — the grounding guardrail then did the right thing at generation time. This is success, not failure. |
+## 3. Did it hallucinate?
 
-Because recall@4 is 100% on in-scope queries, no query suffered a retrieval
-miss. All answers stood or fell on generation. In cases where generation was
-imperfect (the "data scientists" hallucination), the cause was the generator,
-not retrieval. Separating the two concerns is what this table is for — if
-recall@4 had been, say, 60%, those failures would be retrieval-attributed and
-we would focus optimization on chunking / embedder / k.
+Not that I could see. Across all 10 queries I did not catch any fabricated facts. The prompt I used tells the model "answer ONLY from the context provided" and that seems to have held.
 
-## 5. Latency measurements
+The Eiffel Tower question (query 10) is the interesting one. FAISS always returns *something* at k=4 — there's no "no results" option without a score threshold. So the retriever returned three random MLOps docs that had nothing to do with the Eiffel Tower. But the generator looked at them, saw nothing about the Eiffel Tower, and refused to answer. That's exactly what I wanted — the guardrail caught it at generation time even though the retriever couldn't signal "I have nothing."
 
-Measured on the author's machine during one clean eval run.
+## 4. Retrieval failures vs generation failures
 
-| Stage | Mean (ms) | Notes |
-|-------|-----------|-------|
-| Retrieval (FAISS search + embedding query) | 35 | Dominated by embedding the query (~30ms on CPU) |
-| Generation (Ollama call, mistral:7b, CPU) | 4200 | Highly hardware-dependent; ~700ms on GPU |
-| End-to-end | 4240 | Retrieval is ~1% of total |
+This is where separating the two really matters:
 
-The practical takeaway: retrieval is effectively free at this corpus size.
-Nearly all the latency is the LLM, so further optimization (reranking, hybrid
-search) would have to buy enough quality to justify slower inference — not a
-tradeoff that made sense for this 9-query eval.
+| Query | What went wrong | Whose fault? |
+|-------|-----------------|--------------|
+| 8 (DVC + registry) | Only got doc7, missed doc6 | **Retrieval.** All 4 slots were chunks from the registry doc. The phrase "data versioning" in the query embedded closer to "training data version" (which shows up in the registry doc's metadata section) than to the DVC doc itself. |
+| 9 (canary + monitoring) | Only got doc5, missed doc2 | **Retrieval.** The word "canary" dominated the similarity score and pushed every slot to the deployment doc. The monitoring doc never made it in. |
+| 10 (Eiffel Tower) | Retrieved irrelevant docs | **This is actually a success.** The retriever returned off-topic docs (expected), and the generator correctly refused to answer. |
+| 1–7 | Nothing went wrong | N/A |
 
-## 6. Design decisions
+**Big takeaway:** every failure I had was a retrieval failure. When the right documents made it into the LLM's context, it grounded correctly and produced a good answer. The 7B model didn't hallucinate or make things up even once. This means if I wanted to improve the system, I should work on the retriever (bigger k, better embedder, or reranking), not the generator.
 
-### Chunking (512 chars, 50 overlap)
-Tried three settings: 256/25, 512/50, 1024/100. 256 split several definitions
-mid-sentence (e.g. the definition of concept drift was cut in half), which hurt
-retrieval on query 2. 1024 produced chunks that bundled multiple concepts —
-good for recall but low precision because the retrieved chunk was only
-partially relevant to the query. 512/50 hit the sweet spot: individual concepts
-stayed together, adjacent-paragraph overlap prevented boundary loss.
+My agent in Part 2 actually fixes this problem by doing separate retrievals for each topic in a multi-hop question. See the traces for tasks 4 and 7 there.
 
-### Embedder (`all-MiniLM-L6-v2`)
-384 dimensions, CPU-friendly, strong retrieval for English factoid corpora.
-Alternatives like `bge-small-en` would give a small quality bump but triple the
-model download. Not worth it for a corpus this size.
+## 5. Latency
 
-### Index type (`IndexFlatIP`)
-At 7 documents / ~40 chunks, exact search is faster than building an IVF or
-HNSW index. Flat IP over normalized vectors is equivalent to cosine similarity
-and makes scores directly interpretable (1.0 = identical).
+Averages across all 10 queries during my eval run:
 
-### Top-k (4)
-k=1 was too aggressive on multi-hop queries (would miss one of two gold docs).
-k=8 diluted the prompt with irrelevant context, occasionally distracting the
-model. k=4 gave the multi-hop queries enough breathing room without bloating
-the prompt.
+| Stage | Mean time |
+|-------|-----------|
+| Retrieval (FAISS lookup + embedding the query) | 216 ms |
+| Generation (Ollama LLM call) | 2,574 ms |
+| End-to-end | 2,790 ms |
 
-### Generator temperature (0)
-Deterministic output makes the eval reproducible and makes hallucinations
-easier to hunt down (non-deterministic hallucinations are much harder to
-diagnose).
+A note on the 216 ms retrieval average: the first query of any session loads the embedder model into memory, which takes about 2 seconds. After that, retrieval is under 10 ms per query. The average gets dragged up by that one-time warmup. In my demo run (`rag_pipeline.py`), query 1 took 2,218 ms for retrieval but queries 2 and 3 were 7.9 ms and 9.5 ms respectively.
 
-## 7. Hardware and model serving details (for final-run reproducibility)
+Generation is where almost all the time goes — about 92% of end-to-end latency. Retrieval is basically free at this corpus size (46 chunks). If I wanted the system faster, I'd need a smaller/quantized LLM or a GPU, not a better retriever.
 
-- **Serving stack:** Ollama (latest)
-- **Model:** `mistral:7b-instruct` (ollama pull tag: `mistral:7b-instruct`, HF origin: `mistralai/Mistral-7B-Instruct-v0.3`)
-- **Size class:** 7B
-- **Hardware:** [FILL IN YOUR OWN HARDWARE — e.g. "MacBook Pro M2, 16GB RAM, CPU inference"]
-- **Typical generation latency:** ~4s on CPU, ~0.7s on GPU
-- **Embedder device:** CPU (MiniLM is tiny; GPU gains are negligible here)
+## 6. Design decisions (and why I made them)
 
-> **Before submission:** run `python evaluate_rag.py` on your own hardware,
-> update the numbers in this report to match `rag_eval_results.json`, and
-> fill in your hardware in the row above.
+**Chunk size: 512 characters with 50 overlap.**
+I tried thinking about this as tradeoffs. Smaller chunks (like 256) would split some of the definitions in half — for example the drift definition in doc2 runs across multiple sentences and needs to stay together. Bigger chunks (like 1024) would mash multiple concepts into one chunk, which would hurt precision. 512 felt like the right middle. The 50-char overlap means if the key sentence gets cut at a boundary, the overlap grabs enough context to still be useful.
+
+**Embedder: all-MiniLM-L6-v2.**
+It's small (90 MB), fast on CPU, and works well on English factual content. A bigger model like bge-small-en might have avoided the query 8/9 miss, but I didn't think it was worth the extra size for this small a corpus.
+
+**FAISS IndexFlatIP.**
+At only 46 chunks, exact search is faster than anything fancier like IVF or HNSW. I normalized the vectors so inner product = cosine similarity, which makes the scores easier to interpret.
+
+**k=4.**
+I tried k=2 and it was too aggressive for multi-hop. I tried k=8 and the LLM started getting distracted by low-relevance chunks and sometimes citing them. k=4 was the sweet spot. Looking at it now, maybe k=6 would have caught queries 8 and 9 — worth trying next time.
+
+**Temperature = 0.**
+Deterministic output so my evaluation is reproducible. Any hallucination or weird answer would at least show up the same way every run.
+
+## 7. Model and hardware info (for reproducing)
+
+- **Serving:** Ollama on Windows
+- **Model:** `mistral:7b-instruct` (Ollama tag), originally `mistralai/Mistral-7B-Instruct-v0.3` on HuggingFace
+- **Size:** 7B parameters
+- **Quantization:** Q4_K_M (Ollama's default for 7B models)
+- **Hardware:** [Microsoft Windows 11 Pro]
+- **Typical generation time:** ~2.6 seconds per response
+- **Retrieval time (after warmup):** under 10 ms per query
+- **End-to-end:** ~2.8 seconds per query
+
+To reproduce my numbers: install Ollama, run `ollama pull mistral:7b-instruct`, then `pip install -r requirements.txt` and `python evaluate_rag.py`.

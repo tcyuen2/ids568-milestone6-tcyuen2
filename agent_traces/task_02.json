@@ -1,58 +1,72 @@
 {
   "task_id": 2,
   "task": "What is the difference between data drift and concept drift?",
-  "final_answer": "Data drift is a change in the distribution of the input features \u2014 the model's mapping is still correct but the inputs have shifted. Concept drift is a change in the relationship between inputs and outputs \u2014 the same input features now correspond to different labels. Practical difference: data drift can be detected without labels by comparing input distributions, while concept drift requires ground-truth labels and is therefore harder to detect in real time. [doc2_model_monitoring.md]",
-  "total_ms": 1750.0,
-  "n_steps": 2,
+  "final_answer": "{\"concept_drift\": \"A change in the relationship between input features and output labels in machine learning models, causing the same input to imply a different output. For instance, customer churn behavior might alter due to competitor pricing changes.\", \"data_drift\": \"Changes in the distribution of input features.\"}",
+  "total_ms": 12076.6,
+  "n_steps": 3,
   "steps": [
     {
       "step": 1,
-      "thought": "Search the corpus for both terms in one query.",
+      "thought": "First, I will retrieve information about data drift and concept drift from the MLOps document corpus.",
       "action": "retrieve",
       "action_input": {
-        "query": "data drift vs concept drift",
+        "query": "data drift AND concept drift",
         "k": 4
       },
       "observation": {
-        "query": "data drift vs concept drift",
+        "query": "data drift AND concept drift",
         "hits": [
           {
             "source": "doc2_model_monitoring.md",
-            "score": 0.8124,
-            "text": "Data drift is a change in the distribution of the input features... Concept drift is a change in the relationship between inputs and outputs..."
+            "score": 0.8111,
+            "text": "correctly, but the\ninputs themselves have changed.Concept drift is a change in the relationship between inputs and outputs. The\nsame input features now imply a different label. For example, customer churn\nbehavior might shift after a competitor changes their pricing, so the same\ncustomer profile now has a different probability of churning.\n\nData drift can often be detected without labels by comparing the distribution\nof production inputs to training inputs. Concept drift requires ground-truth\nlabels and is therefore harder to detect in real time."
           },
           {
             "source": "doc2_model_monitoring.md",
-            "score": 0.6512,
-            "text": "Data drift can often be detected without labels by comparing the distribution of production inputs to training inputs. Concept drift requires ground-truth labels..."
+            "score": 0.651,
+            "text": "# Model Monitoring and Drift Detection\n\nMonitoring deployed machine learning models is essential because model quality\ndegrades over time. Unlike traditional software, which fails in obvious ways,\nML models can silently produce worse predictions while all infrastructure\nmetrics look healthy.\n\n## Data Drift vs Concept Drift"
           },
           {
-            "source": "doc4_cicd_ml.md",
-            "score": 0.2819,
-            "text": "Models degrade silently. A traditional bug throws an exception..."
+            "source": "doc2_model_monitoring.md",
+            "score": 0.6326,
+            "text": "rics look healthy.\n\n## Data Drift vs Concept DriftData drift is a change in the distribution of the input features. For example,\na fraud detection model might see a new type of transaction pattern that was\nrare during training. The model still maps inputs to outputs correctly, but the\ninputs themselves have changed."
           },
           {
-            "source": "doc5_model_deployment.md",
-            "score": 0.2105,
-            "text": "Shadow deployment cannot detect problems caused by serving the new model's predictions..."
+            "source": "doc2_model_monitoring.md",
+            "score": 0.6025,
+            "text": "t\ndetects multivariate distributional differences.For concept drift, prediction-based monitors track the distribution of model\noutputs. If the predicted positive rate suddenly shifts, that may indicate\neither data drift or concept drift.\n\n## What to Monitor"
           }
         ]
       },
       "final_answer": null,
-      "latency_ms": 900,
-      "raw_llm_output": "{\"thought\": \"Search the corpus for both terms in one query.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"data drift vs concept drift\", \"k\": 4}}"
+      "latency_ms": 1468.1867000035709,
+      "raw_llm_output": "{\"thought\": \"First, I will retrieve information about data drift and concept drift from the MLOps document corpus.\",\n \"action\": \"retrieve\",\n \"action_input\": {\"query\": \"data drift AND concept drift\", \"k\": 4}}"
     },
     {
       "step": 2,
-      "thought": "The retrieved chunks directly answer the question. No need for another retrieval or summarization.",
+      "thought": "Data drift and concept drift are two types of changes in machine learning models' input and output distributions. Data drift refers to a change in the distribution of input features, while concept drift is a change in the relationship between inputs and outputs. The same input features now imply a different label due to external factors such as a competitor changing their pricing.",
+      "action": "summarize",
+      "action_input": {
+        "text": "correctly, but the\ninputs themselves have changed.Concept drift is a change in the relationship between inputs and outputs. The\nsame input features now imply a different label. For example, customer churn\nbehavior might shift after a competitor changes their pricing, so the same\ncustomer profile now has a different probability of churning.\n\nData drift can often be detected without labels by comparing the distribution\nof production inputs to training inputs. Concept drift requires ground-truth\nlabels and is therefore harder to detect in real time."
+      },
+      "observation": {
+        "summary": "Concept drift refers to a change in the relationship between input features and output labels in machine learning models, causing the same input to imply a different output. For instance, customer churn behavior might alter due to competitor pricing changes. Data drift can be detected without labels by comparing production and training inputs' distributions, while concept drift requires ground-truth labels and is more challenging to identify in real time."
+      },
+      "final_answer": null,
+      "latency_ms": 5351.91539999505,
+      "raw_llm_output": "{\"thought\": \"Data drift and concept drift are two types of changes in machine learning models' input and output distributions. Data drift refers to a change in the distribution of input features, while concept drift is a change in the relationship between inputs and outputs. The same input features now imply a different label due to external factors such as a competitor changing their pricing.\",\n \"action\": \"summarize\",\n \"action_input\": {\"text\": \"correctly, but the\\ninputs themselves have changed.Concept drift is a change in the relationship between inputs and outputs. The\\nsame input features now imply a different label. For example, customer churn\\nbehavior might shift after a competitor changes their pricing, so the same\\ncustomer profile now has a different probability of churning.\\n\\nData drift can often be detected without labels by comparing the distribution\\nof production inputs to training inputs. Concept drift requires ground-truth\\nlabels and is therefore harder to detect in real time.\"}}"
+    },
+    {
+      "step": 3,
+      "thought": "The user asked for the difference between data drift and concept drift. The summarize tool provided a concise explanation of both concepts. Data drift refers to changes in the distribution of input features, while concept drift involves a change in the relationship between inputs and outputs.",
       "action": null,
       "action_input": null,
       "observation": null,
-      "final_answer": "Data drift is a change in the distribution of the input features \u2014 the model's mapping is still correct but the inputs have shifted. Concept drift is a change in the relationship between inputs and outputs \u2014 the same input features now correspond to different labels. Practical difference: data drift can be detected without labels by comparing input distributions, while concept drift requires ground-truth labels and is therefore harder to detect in real time. [doc2_model_monitoring.md]",
-      "latency_ms": 850,
-      "raw_llm_output": "{\"thought\": \"The retrieved chunks directly answer the question. No need for another retrieval or summarization.\", \"final_answer\": \"Data drift is a change in the distribution of the input features \\u2014 the model's mapping is still correct but the inputs have shifted. Concept drift is a change in the relationship between inputs and outputs \\u2014 the same input features now correspond to different labels. Practical difference: data drift can be detected without labels by comparing input distributions, while concept drift requires ground-truth labels and is therefore harder to detect in real time. [doc2_model_monitoring.md]\"}"
+      "final_answer": "{\"concept_drift\": \"A change in the relationship between input features and output labels in machine learning models, causing the same input to imply a different output. For instance, customer churn behavior might alter due to competitor pricing changes.\", \"data_drift\": \"Changes in the distribution of input features.\"}",
+      "latency_ms": 3594.397900000331,
+      "raw_llm_output": "{\"thought\": \"The user asked for the difference between data drift and concept drift. The summarize tool provided a concise explanation of both concepts. Data drift refers to changes in the distribution of input features, while concept drift involves a change in the relationship between inputs and outputs.\",\n \"final_answer\": {\"concept_drift\": \"A change in the relationship between input features and output labels in machine learning models, causing the same input to imply a different output. For instance, customer churn behavior might alter due to competitor pricing changes.\",\n \"data_drift\": \"Changes in the distribution of input features.\"}}"
     }
   ],
   "notes": "",
-  "success": true
+  "success": null
 }

@@ -1,73 +1,73 @@
 {
   "task_id": 3,
   "task": "Find what the corpus says about canary deployments, then give me a 2-sentence summary.",
-  "final_answer": "Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity. [doc5_model_deployment.md]",
-  "total_ms": 2710.0,
+  "final_answer": "{\"summary\": \"Canary deployments involve releasing a new model version to a small percentage (1-5%) of total traffic initially, with the intention of gradually increasing exposure if the performance metrics remain healthy. If the metrics degrade at any point during this process, traffic is reverted back.\"}",
+  "total_ms": 10087.54,
   "n_steps": 3,
   "steps": [
     {
       "step": 1,
-      "thought": "Retrieve information about canary deployments.",
+      "thought": "Searching for information on canary deployments in the MLOps document corpus.",
       "action": "retrieve",
       "action_input": {
-        "query": "canary deployment strategy ML",
+        "query": "canary deployments",
         "k": 4
       },
       "observation": {
-        "query": "canary deployment strategy ML",
+        "query": "canary deployments",
         "hits": [
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.7933,
-            "text": "In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased..."
+            "score": 0.665,
+            "text": "ves sensibly on real data without any\nuser impact.Shadow deployment cannot detect problems caused by serving the new model's\npredictions (for example, a feedback loop where user behavior reacts to worse\npredictions). It is complementary to, not a replacement for, canary.\n\n## Rolling Deployment\n\nRolling deployment replaces instances of the old version with the new version\ngradually, one at a time or in batches. Unlike canary, there is no explicit\ntraffic split; instances are replaced until all are running the new version."
           },
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.6724,
-            "text": "Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring. The tradeoff is slower rollout and more complex traffic routing infrastructure."
-          },
-          {
-            "source": "doc3_ab_testing.md",
-            "score": 0.3014,
-            "text": "Shadow deployment runs the new model in parallel with the old one without serving its predictions..."
+            "score": 0.6442,
+            "text": "raffic before full exposure.\n\n## Canary DeploymentIn a canary deployment, the new model version is exposed to a small fraction\nof traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics\nlook healthy, traffic to the new version is gradually increased: 10 percent,\n25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic\nis rolled back."
           },
           {
             "source": "doc5_model_deployment.md",
-            "score": 0.2711,
-            "text": "For low-risk changes (small model updates, non-critical features), rolling deployment is fine..."
+            "score": 0.5474,
+            "text": "d entirely from blue to green in a single cutover.The advantage is immediate rollback: if the new version fails, flip traffic\nback to blue. The disadvantage is cost: you pay for double infrastructure\nduring the transition, and you cannot gradually validate the new model on real\ntraffic before full exposure.\n\n## Canary Deployment"
+          },
+          {
+            "source": "doc5_model_deployment.md",
+            "score": 0.5346,
+            "text": "trics degrade at any step, traffic\nis rolled back.Canary deployment is the most common strategy for high-stakes ML systems\nbecause it combines gradual exposure with monitoring. The tradeoff is slower\nrollout and more complex traffic routing infrastructure.\n\n## Shadow Deployment"
           }
         ]
       },
       "final_answer": null,
-      "latency_ms": 940,
-      "raw_llm_output": "{\"thought\": \"Retrieve information about canary deployments.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"canary deployment strategy ML\", \"k\": 4}}"
+      "latency_ms": 1389.2862000066089,
+      "raw_llm_output": "{\"thought\": \"Searching for information on canary deployments in the MLOps document corpus.\",\n \"action\": \"retrieve\",\n \"action_input\": {\"query\": \"canary deployments\", \"k\": 4}}"
     },
     {
       "step": 2,
-      "thought": "I have the retrieved text. Pass the key excerpt to summarize.",
+      "thought": "The corpus mentions that Canary deployments involve exposing a new model version to a small fraction of traffic, typically 1-5%, and gradually increasing it if the metrics look healthy. If metrics degrade at any step, traffic is rolled back.",
       "action": "summarize",
       "action_input": {
-        "text": "In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back. Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring. The tradeoff is slower rollout and more complex traffic routing infrastructure.",
+        "text": "The corpus mentions that Canary deployments involve exposing a new model version to a small fraction of traffic, typically 1-5%, and gradually increasing it if the metrics look healthy. If metrics degrade at any step, traffic is rolled back.",
         "max_sentences": 2
       },
       "observation": {
-        "summary": "Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity."
+        "summary": "Canary deployments in the mentioned corpus refer to releasing a new model version to a small percentage (1-5%) of the total traffic initially, with the intention of gradually increasing exposure if the performance metrics remain healthy. If the metrics degrade at any point during this process, traffic is reverted back to its previous state."
       },
       "final_answer": null,
-      "latency_ms": 1050,
-      "raw_llm_output": "{\"thought\": \"I have the retrieved text. Pass the key excerpt to summarize.\", \"action\": \"summarize\", \"action_input\": {\"text\": \"In a canary deployment, the new model version is exposed to a small fraction of traffic, typically 1 to 5 percent. Key metrics are monitored. If the metrics look healthy, traffic to the new version is gradually increased: 10 percent, 25 percent, 50 percent, 100 percent. If metrics degrade at any step, traffic is rolled back. Canary deployment is the most common strategy for high-stakes ML systems because it combines gradual exposure with monitoring. The tradeoff is slower rollout and more complex traffic routing infrastructure.\", \"max_sentences\": 2}}"
+      "latency_ms": 3682.273800004623,
+      "raw_llm_output": "{\"thought\": \"The corpus mentions that Canary deployments involve exposing a new model version to a small fraction of traffic, typically 1-5%, and gradually increasing it if the metrics look healthy. If metrics degrade at any step, traffic is rolled back.\",\n \"action\": \"summarize\",\n \"action_input\": {\"text\": \"The corpus mentions that Canary deployments involve exposing a new model version to a small fraction of traffic, typically 1-5%, and gradually increasing it if the metrics look healthy. If metrics degrade at any step, traffic is rolled back.\", \"max_sentences\": 2}}"
     },
     {
       "step": 3,
-      "thought": "Return the 2-sentence summary.",
+      "thought": "The corpus describes Canary deployments as a method for releasing new model versions to a small percentage (1-5%) of total traffic initially, with the intention of gradually increasing exposure if the performance metrics remain healthy. If the metrics degrade at any point during this process, traffic is reverted back.",
       "action": null,
       "action_input": null,
       "observation": null,
-      "final_answer": "Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity. [doc5_model_deployment.md]",
-      "latency_ms": 720,
-      "raw_llm_output": "{\"thought\": \"Return the 2-sentence summary.\", \"final_answer\": \"Canary deployments roll a new model out to 1-5% of traffic, monitor key metrics, and gradually increase to 100% if health is maintained (rolling back immediately if it degrades). It is the standard choice for high-stakes ML because it combines gradual exposure with monitoring, at the cost of slower rollout and more routing complexity. [doc5_model_deployment.md]\"}"
+      "final_answer": "{\"summary\": \"Canary deployments involve releasing a new model version to a small percentage (1-5%) of total traffic initially, with the intention of gradually increasing exposure if the performance metrics remain healthy. If the metrics degrade at any point during this process, traffic is reverted back.\"}",
+      "latency_ms": 3673.119699989911,
+      "raw_llm_output": "{\"thought\": \"The corpus describes Canary deployments as a method for releasing new model versions to a small percentage (1-5%) of total traffic initially, with the intention of gradually increasing exposure if the performance metrics remain healthy. If the metrics degrade at any point during this process, traffic is reverted back.\",\n \"final_answer\": {\"summary\": \"Canary deployments involve releasing a new model version to a small percentage (1-5%) of total traffic initially, with the intention of gradually increasing exposure if the performance metrics remain healthy. If the metrics degrade at any point during this process, traffic is reverted back.\"}}"
     }
   ],
   "notes": "",
-  "success": true
+  "success": null
 }

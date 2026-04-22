@@ -1,73 +1,73 @@
 {
   "task_id": 6,
   "task": "Write a short briefing (3 sentences) for a new engineer on why CI/CD for ML is harder than regular CI/CD.",
-  "final_answer": "ML CI/CD must test three independent inputs \u2014 code, data, and hyperparameters \u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \u2014 there is no exception, only slightly worse predictions \u2014 so evaluation on slice metrics becomes mandatory. [doc4_cicd_ml.md]",
-  "total_ms": 2725.0,
+  "final_answer": "Machine Learning (ML) CI/CD processes are more complex than traditional software CI/CD because the behavior of the system depends not just on code but also on data and trained model artifacts. Unlike code, model behavior is non-deterministic, leading to potential issues that a pipeline testing only code might overlook. Additionally, models tend to degrade silently over time without proper monitoring.",
+  "total_ms": 13697.19,
   "n_steps": 3,
   "steps": [
     {
       "step": 1,
-      "thought": "Retrieve the CI/CD-for-ML content.",
+      "thought": "To provide a concise briefing on the challenges of implementing CI/CD for Machine Learning (ML), I will first search the MLOps document corpus and then summarize the findings. The complexity arises due to factors like data versioning, model training time, and validation of ML models.",
       "action": "retrieve",
       "action_input": {
-        "query": "CI/CD for ML complexity vs traditional software",
+        "query": "Why is CI/CD for Machine Learning harder than regular CI/CD?",
         "k": 4
       },
       "observation": {
-        "query": "CI/CD for ML complexity vs traditional software",
+        "query": "Why is CI/CD for Machine Learning harder than regular CI/CD?",
         "hits": [
           {
             "source": "doc4_cicd_ml.md",
-            "score": 0.8133,
-            "text": "Traditional CI/CD tests code. If the unit tests pass and integration tests pass, you ship. ML systems have three independent inputs that can change behavior: code, data, and model hyperparameters..."
+            "score": 0.7187,
+            "text": "# CI/CD for Machine Learning\n\nContinuous Integration and Continuous Deployment for machine learning extends\ntraditional software CI/CD with additional stages specific to data and models.\nML CI/CD is fundamentally more complex than software CI/CD because the behavior\nof the system depends not just on code but also on data and trained model\nartifacts.\n\n## Why ML CI/CD Is More Complex"
           },
           {
             "source": "doc4_cicd_ml.md",
-            "score": 0.6912,
-            "text": "Model behavior is non-deterministic in ways that code usually is not. The same training code run on the same data can produce slightly different models due to random initialization, GPU nondeterminism..."
+            "score": 0.5543,
+            "text": "model\nartifacts.\n\n## Why ML CI/CD Is More ComplexTraditional CI/CD tests code. If the unit tests pass and integration tests\npass, you ship. ML systems have three independent inputs that can change\nbehavior: code, data, and model hyperparameters. A pipeline that tests only\ncode will miss data-induced regressions.\n\nModel behavior is non-deterministic in ways that code usually is not. The same\ntraining code run on the same data can produce slightly different models due\nto random initialization, GPU nondeterminism, or parallelism. Tests must\naccount for this."
           },
           {
             "source": "doc4_cicd_ml.md",
-            "score": 0.6502,
-            "text": "Models degrade silently. A traditional bug throws an exception or produces obviously wrong output. A degraded model produces subtly worse predictions..."
+            "score": 0.3359,
+            "text": "nism, or parallelism. Tests must\naccount for this.Models degrade silently. A traditional bug throws an exception or produces\nobviously wrong output. A degraded model produces subtly worse predictions\nthat only show up in aggregate metrics.\n\n## Components of ML CI/CD\n\nData validation runs on every pipeline execution. It checks schema conformance,\nfeature distributions, and known invariants. TensorFlow Data Validation and\nGreat Expectations are common tools."
           },
           {
-            "source": "doc2_model_monitoring.md",
-            "score": 0.2905,
-            "text": "Monitoring deployed machine learning models is essential because model quality degrades over time..."
+            "source": "doc1_feature_stores.md",
+            "score": 0.2847,
+            "text": "ed systems.\n\n## Core Problems Feature Stores SolveTraining-serving skew occurs when the data pipeline that generates features for\ntraining is different from the one used at inference time. A feature store\nprovides a single source of truth: the same transformation logic is applied in\nboth contexts, guaranteeing consistency."
           }
         ]
       },
       "final_answer": null,
-      "latency_ms": 905,
-      "raw_llm_output": "{\"thought\": \"Retrieve the CI/CD-for-ML content.\", \"action\": \"retrieve\", \"action_input\": {\"query\": \"CI/CD for ML complexity vs traditional software\", \"k\": 4}}"
+      "latency_ms": 2708.178000000771,
+      "raw_llm_output": "{\"thought\": \"To provide a concise briefing on the challenges of implementing CI/CD for Machine Learning (ML), I will first search the MLOps document corpus and then summarize the findings. The complexity arises due to factors like data versioning, model training time, and validation of ML models.\",\n\"action\": \"retrieve\",\n\"action_input\": {\"query\": \"Why is CI/CD for Machine Learning harder than regular CI/CD?\", \"k\": 4}}"
     },
     {
       "step": 2,
-      "thought": "Use the summarize tool to produce a 3-sentence briefing from the retrieved points.",
+      "thought": "The user's question asks about the challenges of implementing CI/CD for Machine Learning (ML) compared to regular CI/CD. The retrieved information suggests that ML CI/CD is more complex due to factors like non-deterministic model behavior, data-induced regressions, and silent degradation of models.",
       "action": "summarize",
       "action_input": {
-        "text": "ML CI/CD is harder than software CI/CD because (1) behavior depends on code AND data AND hyperparameters - a pipeline that only tests code misses data regressions; (2) model training is non-deterministic (random init, GPU order, parallelism) so tests must tolerate small variations; (3) models degrade silently - a bug throws an exception, but a degraded model produces subtly worse predictions that only aggregate metrics reveal.",
+        "text": "ML CI/CD is fundamentally more complex than software CI/CD because the behavior of the system depends not just on code but also on data and trained model artifacts. Model behavior is non-deterministic in ways that code usually is not. A pipeline that tests only code will miss data-induced regressions. Models degrade silently.",
         "max_sentences": 3
       },
       "observation": {
-        "summary": "ML CI/CD must test three independent inputs \u2014 code, data, and hyperparameters \u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \u2014 there is no exception, only slightly worse predictions \u2014 so evaluation on slice metrics becomes mandatory."
+        "summary": "Machine Learning (ML) Continuous Integration/Continuous Deployment (CI/CD) processes are more complex than traditional software CI/CD due to the involvement of data and trained model artifacts, which can affect system behavior unpredictably. Unlike code, model behavior is non-deterministic, leading to potential issues that a pipeline testing only code might overlook. Additionally, models tend to degrade silently over time without proper monitoring."
       },
       "final_answer": null,
-      "latency_ms": 1080,
-      "raw_llm_output": "{\"thought\": \"Use the summarize tool to produce a 3-sentence briefing from the retrieved points.\", \"action\": \"summarize\", \"action_input\": {\"text\": \"ML CI/CD is harder than software CI/CD because (1) behavior depends on code AND data AND hyperparameters - a pipeline that only tests code misses data regressions; (2) model training is non-deterministic (random init, GPU order, parallelism) so tests must tolerate small variations; (3) models degrade silently - a bug throws an exception, but a degraded model produces subtly worse predictions that only aggregate metrics reveal.\", \"max_sentences\": 3}}"
+      "latency_ms": 4675.182400009362,
+      "raw_llm_output": "{\"thought\": \"The user's question asks about the challenges of implementing CI/CD for Machine Learning (ML) compared to regular CI/CD. The retrieved information suggests that ML CI/CD is more complex due to factors like non-deterministic model behavior, data-induced regressions, and silent degradation of models.\",\n\"action\": \"summarize\",\n\"action_input\": {\"text\": \"ML CI/CD is fundamentally more complex than software CI/CD because the behavior of the system depends not just on code but also on data and trained model artifacts. Model behavior is non-deterministic in ways that code usually is not. A pipeline that tests only code will miss data-induced regressions. Models degrade silently.\", \"max_sentences\": 3}}"
     },
     {
       "step": 3,
-      "thought": "Return the 3-sentence briefing.",
+      "thought": "The user's question asks about the challenges of implementing CI/CD for Machine Learning (ML) compared to regular CI/CD. The summarized information suggests that ML CI/CD is more complex due to factors like non-deterministic model behavior, data-induced regressions, and silent degradation of models.",
       "action": null,
       "action_input": null,
       "observation": null,
-      "final_answer": "ML CI/CD must test three independent inputs \u2014 code, data, and hyperparameters \u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \u2014 there is no exception, only slightly worse predictions \u2014 so evaluation on slice metrics becomes mandatory. [doc4_cicd_ml.md]",
-      "latency_ms": 740,
-      "raw_llm_output": "{\"thought\": \"Return the 3-sentence briefing.\", \"final_answer\": \"ML CI/CD must test three independent inputs \\u2014 code, data, and hyperparameters \\u2014 not just code, so a green build on code alone can still ship a broken system. Training is non-deterministic (random init, GPU order), so your tests must tolerate small variations rather than demand bit-exact outputs. And unlike ordinary bugs, a degraded model fails silently \\u2014 there is no exception, only slightly worse predictions \\u2014 so evaluation on slice metrics becomes mandatory. [doc4_cicd_ml.md]\"}"
+      "final_answer": "Machine Learning (ML) CI/CD processes are more complex than traditional software CI/CD because the behavior of the system depends not just on code but also on data and trained model artifacts. Unlike code, model behavior is non-deterministic, leading to potential issues that a pipeline testing only code might overlook. Additionally, models tend to degrade silently over time without proper monitoring.",
+      "latency_ms": 4502.006099995924,
+      "raw_llm_output": "{\"thought\": \"The user's question asks about the challenges of implementing CI/CD for Machine Learning (ML) compared to regular CI/CD. The summarized information suggests that ML CI/CD is more complex due to factors like non-deterministic model behavior, data-induced regressions, and silent degradation of models.\",\n\"final_answer\": \"Machine Learning (ML) CI/CD processes are more complex than traditional software CI/CD because the behavior of the system depends not just on code but also on data and trained model artifacts. Unlike code, model behavior is non-deterministic, leading to potential issues that a pipeline testing only code might overlook. Additionally, models tend to degrade silently over time without proper monitoring.\"}"
     }
   ],
   "notes": "",
-  "success": true
+  "success": null
 }

@@ -197,7 +197,11 @@ def run_agent(
         resp = ollama.chat(
             model=model,
             messages=messages,
-            options={"temperature": 0.0},
+            format="json",
+            options={
+                "temperature": 0.0,
+                "num_predict": 1024,   # cap on generated tokens; default is 128, which truncates JSON
+            },
         )
         raw = resp["message"]["content"]
         latency_ms = (time.perf_counter() - t0) * 1000
@@ -219,15 +223,19 @@ def run_agent(
 
         # Final answer branch
         if "final_answer" in decision:
+            fa = decision["final_answer"]
+            # Some models in JSON mode return a dict/list for final_answer; flatten it.
+            if not isinstance(fa, str):
+                fa = json.dumps(fa, ensure_ascii=False)
             step = TraceStep(
                 step=step_i,
                 thought=thought,
-                final_answer=decision["final_answer"],
+                final_answer=fa,
                 latency_ms=latency_ms,
                 raw_llm_output=raw,
             )
             trace.steps.append(step)
-            trace.final_answer = decision["final_answer"]
+            trace.final_answer = fa
             break
 
         # Tool-call branch
@@ -354,7 +362,8 @@ def main() -> None:
             trace.notes = task_def["notes"]
         path = save_trace(trace)
         print(f"    steps={len(trace.steps)} time={trace.total_ms:.0f}ms -> {path.name}")
-        print(f"    answer: {trace.final_answer[:200] if trace.final_answer else '(none)'}")
+        answer_preview = str(trace.final_answer) if trace.final_answer else "(none)"
+        print(f"    answer: {answer_preview[:200]}")
 
 
 if __name__ == "__main__":

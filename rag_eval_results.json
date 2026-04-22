@@ -1,0 +1,249 @@
+{
+  "summary": {
+    "n_queries": 10,
+    "n_in_scope": 9,
+    "mean_precision_at_k": 0.25,
+    "mean_recall_at_k": 0.889,
+    "mean_retrieval_ms": 216.21,
+    "mean_generation_ms": 2574.18,
+    "mean_end_to_end_ms": 2790.39
+  },
+  "per_query": [
+    {
+      "id": 1,
+      "query": "What is a feature store and what problem does it solve?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc1_feature_stores.md"
+      ],
+      "retrieved_sources": [
+        "doc1_feature_stores.md",
+        "doc1_feature_stores.md",
+        "doc1_feature_stores.md",
+        "doc1_feature_stores.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc1_feature_stores.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "A feature store is a centralized data management system for storing, serving, and sharing features used in machine learning models. It solves the problem of training-serving skew, where the feature values a model sees during training differ from those it encounters in production. This skew is one of the leading causes of silent model degradation in deployed systems. [doc1_feature_stores.md]",
+      "retrieval_ms": 2080.46,
+      "generation_ms": 2284.22,
+      "end_to_end_ms": 4364.69
+    },
+    {
+      "id": 2,
+      "query": "How does concept drift differ from data drift?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc2_model_monitoring.md"
+      ],
+      "retrieved_sources": [
+        "doc2_model_monitoring.md",
+        "doc2_model_monitoring.md",
+        "doc2_model_monitoring.md",
+        "doc2_model_monitoring.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc2_model_monitoring.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "Concept drift differs from data drift in that concept drift involves a change in the relationship between inputs and outputs, meaning the same input features now imply a different label. This is often due to external factors affecting the data distribution, such as a competitor changing pricing which might affect customer churn behavior [doc2_model_monitoring.md::2]. On the other hand, data drift refers to a change in the distribution of the input features, where a new type of transaction pattern may appear that was rare during training [doc2_model_monitoring.md::1]. While both types of drift can affect model performance, concept drift requires ground-truth labels and is therefore harder to detect in real time [doc2_model_monitoring.md::4].",
+      "retrieval_ms": 10.23,
+      "generation_ms": 3301.82,
+      "end_to_end_ms": 3312.04
+    },
+    {
+      "id": 3,
+      "query": "What are the main stages of an A/B test for ML models?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc3_ab_testing.md"
+      ],
+      "retrieved_sources": [
+        "doc3_ab_testing.md",
+        "doc3_ab_testing.md",
+        "doc7_model_registry.md",
+        "doc4_cicd_ml.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc3_ab_testing.md",
+        "doc7_model_registry.md",
+        "doc4_cicd_ml.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "The main stages of an A/B test for Machine Learning (ML) models, as described in the context, are:\n\n1. Hypothesis Formulation: Define the business metric you want to improve and the minimum detectable effect you care about. This determines sample size.\n2. Traffic Splitting: Users are randomly assigned to the control group (current model) or treatment group (new model). Randomization must be stable per user to avoid exposing the same user to both versions. [doc3_ab_testing.md]\n3. (Implied from context) Evaluation and Analysis: Analyze the results of the A/B test to determine if the new model improves outcomes in production compared to the control group. [doc3_ab_testing.md]\n4. (Implied from context) Model Registry: The identity of who trained and approved the model, as well as its lifecycle stage, is tracked in a registry. Stage transitions can require approval. [doc7_model_registry.md]\n5. (Implied from context) Continuous Integration/Continuous Deployment (CI/CD): Account for model degradation and ensure data validation runs on every pipeline execution to check schema conformance, feature distributions, and known invariants. [doc4_cicd_ml.md]",
+      "retrieval_ms": 13.86,
+      "generation_ms": 5793.23,
+      "end_to_end_ms": 5807.1
+    },
+    {
+      "id": 4,
+      "query": "Why is CI/CD for ML more complex than traditional software CI/CD?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc4_cicd_ml.md"
+      ],
+      "retrieved_sources": [
+        "doc4_cicd_ml.md",
+        "doc4_cicd_ml.md",
+        "doc4_cicd_ml.md",
+        "doc2_model_monitoring.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc4_cicd_ml.md",
+        "doc2_model_monitoring.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "CI/CD for Machine Learning is more complex than traditional software CI/CD because the behavior of the system depends not just on code but also on data and trained model artifacts. In traditional CI/CD, tests are run only on code. However, in ML systems, there are three independent inputs that can change behavior: code, data, and model hyperparameters. A pipeline that tests only code will miss data-induced regressions [doc4_cicd_ml.md]. Additionally, model behavior is non-deterministic due to factors like random initialization, GPU nondeterminism, or parallelism, which traditional tests may not account for. Furthermore, models degrade silently, producing subtly worse predictions that only show up in aggregate metrics [doc4_cicd_ml.md].",
+      "retrieval_ms": 8.01,
+      "generation_ms": 3656.39,
+      "end_to_end_ms": 3664.41
+    },
+    {
+      "id": 5,
+      "query": "What is the difference between blue-green and canary deployments?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc5_model_deployment.md"
+      ],
+      "retrieved_sources": [
+        "doc5_model_deployment.md",
+        "doc5_model_deployment.md",
+        "doc5_model_deployment.md",
+        "doc5_model_deployment.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc5_model_deployment.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "In a Blue-Green deployment, two identical production environments are maintained. The blue environment serves current traffic, while the green environment receives the new model version. Once the new version passes smoke tests, traffic is switched entirely from blue to green in a single cutover [doc5_model_deployment.md].\n\nOn the other hand, in Canary deployment, instances of the old and new versions coexist, and a small percentage of traffic is directed to the new version. This allows for gradual validation of the new model on real traffic before full exposure [doc5_model_deployment.md]. The main difference between Blue-Green and Canary deployments lies in the approach to transitioning from the old to the new version: Blue-Green deploys all instances of the new version at once, while Canary deploys the new version gradually.",
+      "retrieval_ms": 8.67,
+      "generation_ms": 3725.92,
+      "end_to_end_ms": 3734.59
+    },
+    {
+      "id": 6,
+      "query": "How does DVC track data versions without putting large files in Git?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc6_data_versioning.md"
+      ],
+      "retrieved_sources": [
+        "doc6_data_versioning.md",
+        "doc6_data_versioning.md",
+        "doc6_data_versioning.md",
+        "doc6_data_versioning.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc6_data_versioning.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "DVC tracks data versions by not storing large files in Git directly. When you run `dvc add path/to/dataset`, DVC computes a content hash of the file, moves the file to a local cache, and creates a small metadata file with the .dvc extension in your working directory. This .dvc file contains the hash and is committed to Git. [doc6_data_versioning.md::1]",
+      "retrieval_ms": 8.76,
+      "generation_ms": 1994.46,
+      "end_to_end_ms": 2003.23
+    },
+    {
+      "id": 7,
+      "query": "What metadata is stored in a model registry?",
+      "type": "single-hop factual",
+      "gold_sources": [
+        "doc7_model_registry.md"
+      ],
+      "retrieved_sources": [
+        "doc7_model_registry.md",
+        "doc7_model_registry.md",
+        "doc7_model_registry.md",
+        "doc7_model_registry.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc7_model_registry.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 1.0,
+      "answer": "The metadata stored in a model registry includes training data version, training code version, training hyperparameters, evaluation metrics, model signature (expected input and output schema), and the identity of who trained and approved the model [doc7_model_registry.md::1].",
+      "retrieval_ms": 7.06,
+      "generation_ms": 1260.59,
+      "end_to_end_ms": 1267.65
+    },
+    {
+      "id": 8,
+      "query": "How does data versioning relate to model registries in MLOps?",
+      "type": "multi-hop",
+      "gold_sources": [
+        "doc6_data_versioning.md",
+        "doc7_model_registry.md"
+      ],
+      "retrieved_sources": [
+        "doc7_model_registry.md",
+        "doc7_model_registry.md",
+        "doc7_model_registry.md",
+        "doc7_model_registry.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc7_model_registry.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 0.5,
+      "answer": "In the context provided, data versioning relates to model registries in MLOps by the fact that each model stored in a model registry includes metadata about the training data version. This means that each time a model is trained with different data, a new version of the model is created and stored in the model registry along with the corresponding data version information [doc7_model_registry.md::1].",
+      "retrieval_ms": 7.98,
+      "generation_ms": 1849.7,
+      "end_to_end_ms": 1857.69
+    },
+    {
+      "id": 9,
+      "query": "What should you monitor after deploying a new model via canary?",
+      "type": "multi-hop",
+      "gold_sources": [
+        "doc2_model_monitoring.md",
+        "doc5_model_deployment.md"
+      ],
+      "retrieved_sources": [
+        "doc5_model_deployment.md",
+        "doc5_model_deployment.md",
+        "doc5_model_deployment.md",
+        "doc5_model_deployment.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc5_model_deployment.md"
+      ],
+      "precision_at_k": 0.25,
+      "recall_at_k": 0.5,
+      "answer": "After deploying a new model via canary deployment, key metrics should be monitored. [doc5_model_deployment.md] (chunk doc5_model_deployment.md::7)",
+      "retrieval_ms": 8.27,
+      "generation_ms": 1118.74,
+      "end_to_end_ms": 1127.01
+    },
+    {
+      "id": 10,
+      "query": "What is the height of the Eiffel Tower?",
+      "type": "out-of-scope (edge case)",
+      "gold_sources": [],
+      "retrieved_sources": [
+        "doc1_feature_stores.md",
+        "doc6_data_versioning.md",
+        "doc5_model_deployment.md",
+        "doc1_feature_stores.md"
+      ],
+      "unique_retrieved_sources": [
+        "doc1_feature_stores.md",
+        "doc6_data_versioning.md",
+        "doc5_model_deployment.md"
+      ],
+      "precision_at_k": NaN,
+      "recall_at_k": NaN,
+      "answer": "I cannot answer this question from the provided context as it does not contain information about the Eiffel Tower's height.",
+      "retrieval_ms": 8.8,
+      "generation_ms": 756.69,
+      "end_to_end_ms": 765.49
+    }
+  ],
+  "k": 4
+}

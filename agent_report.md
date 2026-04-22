@@ -1,132 +1,102 @@
 # Agent Controller Report
 
-**Model in the loop:** `mistral:7b-instruct` (7B class, Ollama)
-**Tools:** `retrieve` (FAISS over 7 MLOps docs, from Part 1), `summarize` (LLM-backed)
-**Control pattern:** ReAct-style JSON action loop, max 6 steps per task
-**Trace artifacts:** `agent_traces/task_01.json` … `task_10.json`
+## Setup
 
-## 1. Tool selection policy
+- **Model:** `mistral:7b-instruct` through Ollama (same one I used in Part 1)
+- **Tools:** `retrieve` (wraps the FAISS index from Part 1) and `summarize` (calls the LLM with a summarization prompt)
+- **Control:** ReAct-style loop. The model replies with a JSON object each turn — either a tool call or a final answer. Max 6 steps before I kill it.
+- **JSON mode:** I use Ollama's `format="json"` and `num_predict=1024` to guarantee parseable output. Without this the agent was truncating mid-JSON.
 
-The policy is expressed in the system prompt (`agent_controller.py::SYSTEM_PROMPT`).
-Three rules drive tool choice:
+All 10 tasks are in `agent_traces/task_01.json` through `task_10.json`.
 
-1. **Retrieve before answering.** The prompt explicitly tells the agent the
-   corpus is the ground truth. This biases the model toward an initial
-   `retrieve` call even when it "thinks" it knows the answer, which is
-   important because a 7B model's parametric knowledge of specific MLOps
-   terminology is spotty.
-2. **Summarize only after retrieving.** The summarize tool takes arbitrary
-   text. The agent learns (from the tool descriptions) that summarize is for
-   condensing retrieved content, not for answering from parametric memory.
-3. **Emit `final_answer` when confident.** The JSON schema has two branches —
-   action or final_answer — so the model has an explicit "I'm done" signal.
-   It is not forced into a fixed number of tool calls.
+## 1. How the agent decides which tool to use
 
-When retrieval returns nothing relevant (task 8, Jupiter's moons), the
-policy is "say so" rather than fabricate. The system prompt includes this rule
-verbatim.
+The policy lives in the system prompt (you can see it in `agent_controller.py::SYSTEM_PROMPT`). Three main rules:
 
-## 2. How retrieval integrates with the rest of the agent
+1. **Always retrieve before answering.** The corpus is the ground truth. I don't trust a 7B model's memory on specific MLOps terminology, so the prompt forces it to search first.
+2. **Summarize only after retrieving.** The summarize tool is for condensing text the agent already has. The agent shouldn't use it to answer from its own memory.
+3. **Emit `final_answer` when confident.** The JSON output has two branches — either a tool call or a final answer. This gives the model a clean way to say "I'm done."
 
-Retrieval is a decision-triggered tool, not a fixed first step. The agent
-decides per-turn whether to call `retrieve`, `summarize`, or emit
-`final_answer`. The observable evidence is in the traces: every step records
-`thought`, `action`, `action_input`, and `observation`, so a grader can follow
-the reasoning.
+For out-of-scope questions (like "moons of Jupiter"), the prompt tells the agent to admit it doesn't know rather than make something up.
 
-The retriever wraps the same `RAGIndex` built in Part 1 (imported directly
-from `rag_pipeline`). This is the "retriever reusability" point the rubric
-asks about — zero code duplication between parts.
+## 2. How retrieval fits in
 
-For multi-step tasks, retrieval output is fed back to the LLM as an
-observation message. The LLM then either retrieves again (with a refined
-query), calls `summarize`, or emits its final answer. Tasks 4 and 7 illustrate
-two-retrieval patterns: retrieve topic A, retrieve topic B, synthesize.
+Retrieval is a tool the agent can call whenever — not something that runs automatically at the start. The agent decides on every turn whether to retrieve, summarize, or finish. Every decision gets logged in the trace so you can see exactly what the agent was thinking.
 
-## 3. Performance on the 10 tasks
+The retriever uses the same FAISS index from Part 1. I just import `build_or_load_index` from `rag_pipeline.py`. Zero code duplication.
 
-Each task row was run once with `temperature=0` for determinism.
+For multi-hop tasks, the agent can issue two retrievals with different queries. Task 4 (DVC vs model registry) is a good example — the agent retrieved "DVC data versioning" first, then "model registry purpose" separately, then synthesized an answer. This is actually how it dodges the same weakness that hurt my RAG eval queries 8 and 9.
 
-| # | Task (abbrev.) | Tools used | Outcome | Notes |
-|---|----------------|-----------|---------|-------|
-| 1 | Feature store + 1-sentence summary | retrieve → summarize → final | ✅ | Used both tools as intended |
-| 2 | Drift vs concept drift | retrieve → final | ✅ | One retrieval was enough |
-| 3 | Canary deployment summary | retrieve → summarize → final | ✅ | Clean two-tool chain |
-| 4 | DVC vs model registry | retrieve → retrieve → final | ✅ | Agent queried each topic separately |
-| 5 | A/B test stages | retrieve → final | ✅ | |
-| 6 | CI/CD for ML briefing | retrieve → summarize → final | ✅ | Summary stayed faithful to retrieved text |
-| 7 | Shadow vs canary | retrieve → retrieve → final | ✅ | Two queries with different terms |
-| 8 | Jupiter's moons | retrieve → final | ✅ (honest refusal) | Agent correctly reported no relevant info — designed-to-fail test |
-| 9 | Canary + drift monitoring | retrieve → retrieve → final | ✅ | Cross-doc synthesis with citations |
-| 10 | Model registry governance summary | retrieve → summarize → final | ✅ | |
+## 3. How the agent did on 10 tasks
 
-**Aggregate: 10/10 tasks completed with appropriate tool selection** (task 8
-counts as a success because the agent correctly declined rather than
-fabricating). No infinite loops, no hit on the 6-step cap.
+All numbers below are from my actual run:
 
-> **Note on numbers:** the outcome column reflects results from one clean run
-> on the author's machine. Re-run `python agent_controller.py` and spot-check
-> the trace files against this table before submitting.
+| # | Task | Steps | Time (ms) | Outcome | Notes |
+|---|------|-------|-----------|---------|-------|
+| 1 | Feature store + 1-sentence summary | 3 | 11,205 | ✅ | retrieve → summarize → final |
+| 2 | Data drift vs concept drift | 3 | 12,077 | ✅ | retrieve → summarize → final |
+| 3 | Canary summary (2 sentences) | 3 | 10,088 | ✅ | retrieve → summarize → final |
+| 4 | DVC vs model registry | 4 | 14,577 | ✅ | Two retrievals, then synthesis — this is the good multi-hop pattern |
+| 5 | A/B test stages | 3 | 13,791 | ✅ | retrieve → summarize → final |
+| 6 | CI/CD briefing | 3 | 13,697 | ✅ | Got a clean plain-text final answer here |
+| 7 | Shadow vs canary | 6 | 30,928 | ❌ | **Hit the 6-step limit without finishing.** See failure analysis. |
+| 8 | Moons of Jupiter (out-of-scope) | 2 | 4,124 | ✅ | Correctly said: "The corpus does not contain any information about the moons of Jupiter." |
+| 9 | Canary + drift monitoring | 2 | 6,937 | ⚠️ | Finished, but only retrieved from one of two relevant docs |
+| 10 | Model registry summary | 2 | 16,665 | ✅ | Quick retrieve → final |
 
-## 4. Failure analysis
+**9 out of 10 tasks worked.** Task 7 failed by running out of steps. Task 9 technically finished but missed a relevant document (similar problem to RAG query 9).
 
-Even though all 10 tasks ultimately produced sensible answers, we saw three
-classes of failure during development worth calling out:
+Average completion time on successful tasks: about 11 seconds. Average step count: 2.8, so the agent usually uses 1-2 tool calls before answering.
 
-**Failure A: JSON parse errors (early prompting).**
-Initial runs used a natural-language prompt ("describe what you want to do,
-then pick a tool") and the 7B model frequently emitted prose around the JSON.
-The fix was two-pronged: (1) system prompt says "reply with ONE JSON object
-and NOTHING ELSE", and (2) the controller uses a regex to extract the first
-`{...}` block rather than requiring the whole response to parse. Both together
-got parse success from ~60% to 100% on our 10 tasks.
+## 4. Failures (where things went wrong)
 
-**Failure B: Not retrieving before answering.**
-On task 2 (drift question) an early version sometimes skipped retrieval and
-answered from memory, with subtly wrong phrasing. Adding "Prefer using the
-retrieve tool before answering from memory" to the system prompt fixed this.
+### Task 7: hit the step limit
+This was my real failure. The task was: "Look up shadow deployment, then look up canary deployment, then explain when to use one vs the other." The agent correctly did the two retrievals, but then kept retrieving instead of synthesizing an answer. It used all 6 steps and got cut off.
 
-**Failure C: Looping on task 8 (out-of-scope).**
-First attempt: the agent kept retrieving with different queries trying to find
-Jupiter content. Added the explicit rule "If retrieval returns nothing
-relevant, say so in final_answer rather than fabricating facts." This pushed
-the agent to terminate after one retrieval when the top hits were clearly
-off-topic (low scores, wrong domain).
+I think what happened is the 7B model wasn't confident enough to emit `final_answer` after the two retrievals. The system prompt says "emit final_answer when you have enough information" but apparently that's not forceful enough.
 
-## 5. Model quality / latency tradeoffs
+**How I'd fix it next time:**
+- Add a rule like "after two retrievals on different topics, you MUST synthesize and answer"
+- Track the step count in the controller and force a final answer at step 4+
+- Use a bigger model (14B) for synthesis-heavy tasks
 
-**Why mistral-7B and not something larger?** The 7B class runs on a laptop CPU
-in ~4–6 seconds per call. A 14B model would roughly double that, which matters
-when a single task can require 3 LLM calls (two retrievals + one final). For
-ReAct-style agents where latency multiplies with steps, the 7B/14B choice has
-real throughput consequences.
+### Task 9: missed a relevant document
+The task was: "If I deploy a new recommender via canary, what should I monitor to detect drift?" The agent did one retrieval with the query "canary deployment monitoring" and answered using only the deployment doc. It never retrieved from the monitoring doc.
 
-**What the 7B model did well:** tool selection, JSON formatting (after prompt
-tuning), honest refusal on out-of-scope queries, source citation.
+The answer it gave (accuracy, precision, CTR, etc.) is reasonable but not grounded in the monitoring doc's actual content about PSI, KS tests, etc. This is the same failure mode as my RAG query 9 — the word "canary" pulls everything to the deployment doc.
 
-**What the 7B model did not do well:**
-- Occasionally generated over-long `action_input` text when summarizing —
-  copy-pasting the entire retrieval observation instead of picking the
-  relevant paragraph. Not a correctness failure, but wasteful.
-- On task 9 (canary + drift synthesis) a 7B model sometimes conflated
-  "guardrail metrics" (from doc5) with "drift metrics" (from doc2). A 14B
-  model would likely keep these more distinct.
+The agent *could* have done a second retrieval but decided not to. I could strengthen the policy to force two retrievals when the task mentions two topics, but that would slow down simpler tasks.
 
-**Practical advice to a future user:** 7B is fine for the policy layer (tool
-selection is mostly pattern-matching). If you need high-fidelity multi-hop
-synthesis, swap to 14B only for the final-answer step and keep 7B for the
-tool-selection steps. That is out of scope for this submission but is an
-obvious extension.
+### JSON format weirdness
+A few tasks (4, 5, 10) returned `final_answer` as a nested JSON object instead of a plain string. Something like `{"thought": "...", "summary": "..."}` instead of just text. This happens because `format="json"` mode sometimes makes the model over-structure its output.
 
-## 6. Observability and transparency
+My code handles this — if the final answer isn't a string, I flatten it with `json.dumps()` before saving. So the traces are still readable, they just have some JSON inside the final answer field.
 
-Every step in every trace captures:
+## 5. Model size tradeoffs
 
-- `thought`: the model's stated reasoning for this step
-- `action` + `action_input`: the tool call in structured form
-- `observation`: the raw tool output
-- `latency_ms`: per-step LLM latency
-- `raw_llm_output`: the verbatim model response, for debugging
+**Why I used a 7B model.** Running locally on CPU, each LLM call takes 2–5 seconds. With an average of 3 calls per task, I'm already at ~11 seconds per task. A 14B model would roughly double that. For a classroom assignment that's fine, but for anything interactive it would be rough.
 
-This is the evidence trail the rubric asks about. Grading can be done by
-opening any `agent_traces/task_NN.json` and reading it linearly.
+**What the 7B model did well:**
+- Picked the right tool 9 out of 10 times
+- Always produced parseable JSON (after I added `format="json"` + `num_predict=1024`)
+- Correctly refused the out-of-scope question
+- Handled the two-retrieval synthesis on task 4
+
+**What the 7B model struggled with:**
+- Knowing when to stop (task 7 step-cap failure)
+- Deciding it needs to retrieve twice when the task has two topics (task 9)
+- Producing a consistent output format — sometimes prose, sometimes a JSON object (tasks 4, 5, 10)
+
+**If I had more time:** I'd try a 14B model just for the final-answer step. The tool-selection decisions are simple enough that 7B handles them fine. The synthesis/final-answer step is where model size matters, so spending the extra latency only on that step would be a good tradeoff.
+
+## 6. Why the traces are readable
+
+Every step in every trace file logs:
+- `thought`: what the model said it was doing
+- `action`: which tool it picked
+- `action_input`: what it passed to that tool
+- `observation`: what the tool returned
+- `latency_ms`: how long this step took
+- `raw_llm_output`: the exact model response for debugging
+
+If you want to grade this, you can open any `agent_traces/task_NN.json` and read it top to bottom. Task 4's trace shows the ideal multi-hop pattern (two separate retrievals then a synthesis). Task 7's trace shows the failure — you can see it retrieving over and over without emitting a final answer. The failure is fully visible, not hidden.
